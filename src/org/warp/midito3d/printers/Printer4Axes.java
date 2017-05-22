@@ -6,6 +6,8 @@ import java.util.Locale;
 import org.warp.midito3d.PrinterArea;
 
 public class Printer4Axes implements Printer {
+	public static final int modelID = 0x02;
+	
 	private Motor[] motors;
 	private final PrinterArea printerArea;
 	double[] motorsPosition = new double[4];

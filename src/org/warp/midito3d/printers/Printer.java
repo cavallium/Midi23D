@@ -2,8 +2,6 @@ package org.warp.midito3d.printers;
 
 import java.io.IOException;
 
-import org.warp.midito3d.PrinterArea;
-
 public interface Printer {
 	public int getMotorsCount();
 	public void initialize(GCodeOutput po) throws IOException;

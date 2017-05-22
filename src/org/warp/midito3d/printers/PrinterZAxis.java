@@ -6,6 +6,8 @@ import java.util.Locale;
 import org.warp.midito3d.PrinterArea;
 
 public class PrinterZAxis implements Printer {
+	public static final int modelID = 0x01;
+	
 	private Motor motor;
 	private final PrinterArea printerArea;
 	double motorPosition = 0;

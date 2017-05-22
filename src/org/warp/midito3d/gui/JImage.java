@@ -55,7 +55,10 @@ public class JImage extends JPanel {
 		g2d.setRenderingHints(rh);
 		
         super.paintComponent(g2d);
-        g2d.drawImage(image, 0, 0, this.getWidth(), this.getHeight(), this); // see javadoc for more info on the parameters      
+        int width = this.getWidth();
+        int height = this.getHeight();
+        int min = width<height?width:height;
+        g2d.drawImage(image, this.getWidth()/2-min/2, this.getHeight()/2-min/2, min, min, this); // see javadoc for more info on the parameters      
     }
 
 }

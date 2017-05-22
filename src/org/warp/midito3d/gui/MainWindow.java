@@ -13,13 +13,17 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.RenderingHints;
 import java.awt.Toolkit;
+import java.io.IOException;
 import java.util.Map;
 
+import javax.sound.midi.InvalidMidiDataException;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
+import org.warp.midito3d.gui.printers.PrinterModel;
+import org.warp.midito3d.gui.printers.PrinterModelArea;
 import org.warp.midito3d.midi.MidiMusic;
 import org.warp.midito3d.midi.MidiParser;
 
@@ -29,8 +33,11 @@ public class MainWindow extends JFrame {
 	
 	private static final long serialVersionUID = -3506064352026393354L;
 	
-	private static MainWindow INSTANCE;
+	static MainWindow INSTANCE;
 	public SongPanel songPanel;
+
+	public PrinterModel printerModel;
+	public PrinterModelArea printerModelArea;
 	
 	public MainWindow() {
 		INSTANCE = this;
@@ -85,6 +92,8 @@ public class MainWindow extends JFrame {
 		c.gridwidth = 2;
 		rightPanel.add(rightPanelName, c);
 		c.insets = new Insets(0,2,5,5);
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.anchor = GridBagConstraints.NORTH;
 		c.weightx = 1;
 		c.weighty = 1;
 		c.gridy = 1;
@@ -97,7 +106,7 @@ public class MainWindow extends JFrame {
 		leftPanel.setBackground(Color.white);
 		rightPanel.setBackground(Color.white);
 		this.setBackground(Color.white);
-		this.setMinimumSize(new Dimension(400, 200));
+		this.setMinimumSize(new Dimension(400, 250));
 		this.setPreferredSize(new Dimension(760, 360));
 		this.pack();
 		
@@ -117,8 +126,13 @@ public class MainWindow extends JFrame {
 	}
 	
 	public static void openSong(String file) {
-		MidiMusic music = MidiParser.loadFrom(file);
-		INSTANCE.songPanel = new InputSongPanel(music);
+		MidiMusic music;
+		try {
+			music = MidiParser.loadFrom(file);
+			INSTANCE.songPanel = new InputSongPanel(music);
+		} catch (InvalidMidiDataException | IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	/*
