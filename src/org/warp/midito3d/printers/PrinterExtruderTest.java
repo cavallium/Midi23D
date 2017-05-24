@@ -26,6 +26,7 @@ public class PrinterExtruderTest implements Printer {
 	@Override
 	public void initialize(GCodeOutput po) throws IOException {
 		po.writeLine("G21");
+		po.writeLine("M302");
 		goTo(po, 4000, 0, 0);
 	}
 

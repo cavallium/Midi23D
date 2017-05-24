@@ -159,7 +159,7 @@ public class MainWindow extends JFrame {
 	private synchronized void importMidi(File f) {
 		try {
 			MidiMusic mus = MidiParser.loadFrom(f.toString());
-			mus.setSpeedMultiplier(2f);
+			mus.setSpeedMultiplier(1f);
 			this.midi = mus;
 			Container parent = songPanel.getParent();
 			parent.remove(songPanel);

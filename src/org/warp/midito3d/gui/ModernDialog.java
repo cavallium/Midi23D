@@ -21,15 +21,24 @@ public class ModernDialog {
 	public static boolean initialized = false;
 	public static boolean old = false;
 	
-	public ModernDialog() {
+	static {
 		if (!initialized) {
 			try {
 				PlatformImpl.startup(()->{});
+				System.out.println("init");
 			} catch (java.lang.RuntimeException ex) {
 				old = true;
 			}
+			initialized = true;
 		}
-		
+	}
+	
+	public ModernDialog() {
+		if (old) {
+			oldChooser = new JFileChooser();
+		} else {
+			newChooser = new FileChooser();
+		}
 	}
 	
 	public static void runLater(Runnable r) {

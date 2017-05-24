@@ -26,6 +26,7 @@ public class Printer3Axes implements Printer {
 	@Override
 	public void initialize(GCodeOutput po) throws IOException {
 		po.writeLine("G21");
+		po.writeLine("M302");
 		goTo(po, 8000, printerArea.minX, printerArea.minY, printerArea.minZ, 0);
 	}
 
