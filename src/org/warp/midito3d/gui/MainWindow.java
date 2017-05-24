@@ -29,6 +29,7 @@ import org.warp.midito3d.Midi23D;
 import org.warp.midito3d.gui.printers.Model3Axes;
 import org.warp.midito3d.gui.printers.PrinterModel;
 import org.warp.midito3d.gui.printers.PrinterModelArea;
+import org.warp.midito3d.gui.ModernDialog.ModernExtensionFilter;
 import org.warp.midito3d.midi.MidiMusic;
 import org.warp.midito3d.midi.MidiMusicEvent;
 import org.warp.midito3d.midi.MidiParser;
@@ -36,12 +37,6 @@ import org.warp.midito3d.printers.GCodeOutput;
 import org.warp.midito3d.printers.Printer;
 import org.warp.midito3d.printers.Printer3Axes;
 
-import com.sun.javafx.application.PlatformImpl;
-
-import javafx.application.Platform;
-import javafx.stage.FileChooser;
-import javafx.stage.FileChooser.ExtensionFilter;
-import javafx.stage.Stage;
 
 public class MainWindow extends JFrame {
 	
@@ -140,13 +135,12 @@ public class MainWindow extends JFrame {
 		leftPanelName.setFont(this.getFont());
 		songPanel.setFont(this.getFont());
 		openMidiButton.setFont(this.getFont());
-		PlatformImpl.startup(()->{});
 		openMidiButton.addActionListener((e)->{
-			Platform.runLater(()->{
-				FileChooser fileChooser = new FileChooser();
-				fileChooser.setTitle("Open Midi File");
-				fileChooser.getExtensionFilters().setAll(new ExtensionFilter("Midi files", "*.midi", "*.mid"), new ExtensionFilter("All files", "*.*"));
-				File f = fileChooser.showOpenDialog(null);
+			ModernDialog.runLater(()->{
+				ModernDialog diag = new ModernDialog();
+				diag.setTitle("Open Midi File");
+				diag.setExtensions(new ModernExtensionFilter("Midi files", "*.midi", "*.mid"), new ModernExtensionFilter("All files", "*.*"));
+				File f = diag.show();
 				if (f != null && f.exists()) {
 					importMidi(f);
 				}
@@ -191,11 +185,11 @@ public class MainWindow extends JFrame {
 	}
 	
 	private synchronized void exportMidiDialog() {
-		Platform.runLater(()->{
-			FileChooser fileChooser = new FileChooser();
-			fileChooser.setTitle("Save G-CODE file");
-			fileChooser.getExtensionFilters().setAll(new ExtensionFilter("G-CODE files", "*.gcode", "*.gco"), new ExtensionFilter("All files", "*.*"));
-			File f = fileChooser.showSaveDialog(null);
+		ModernDialog.runLater(()->{
+			ModernDialog diag = new ModernDialog();
+			diag.setTitle("Save G-CODE File");
+			diag.setExtensions(new ModernExtensionFilter("G-CODE files", "*.gcode", "*.gco"), new ModernExtensionFilter("All files", "*.*"));
+			File f = diag.showSaveDialog();
 			if (f != null) {
 				exportMidi(f);
 			}

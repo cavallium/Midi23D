@@ -2,11 +2,13 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>Midi23D</groupId>
   <artifactId>Midi23D</artifactId>
+  <packaging>jar</packaging>
   <version>0.9.0-BETA</version>
   <name>Midi23D</name>
   <properties>
-  <maven.compiler.source>1.8</maven.compiler.source>
-  <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
   <build>
     <sourceDirectory>src</sourceDirectory>
@@ -20,11 +22,20 @@
     </resources>
     <plugins>
       <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.5.1</version>
+	    <groupId>org.apache.maven.plugins</groupId>
+	    <artifactId>maven-compiler-plugin</artifactId>
+	    <version>3.1</version>
         <configuration>
-	        <source>1.8</source>
-	        <target>1.8</target>
+	        <source>${maven.compiler.source}</source>
+	        <target>${maven.compiler.target}</target>
+	        <compilerVersion>${project.build.sourceEncoding}</compilerVersion>
+            <archive>
+                <manifest>
+                    <mainClass>org.warp.midito3d.Main</mainClass>
+                    <addClasspath>true</addClasspath>
+                    <classpathPrefix>lib/</classpathPrefix>
+                </manifest>
+            </archive>
         </configuration>
       </plugin>
     </plugins>
