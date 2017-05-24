@@ -30,7 +30,7 @@ public class OpenSongPanel extends SongPanel {
 		
 		super.setLayout(new GridBagLayout());
 		songIcon = JImage.loadFromResources("song-icon.png");
-		description = new JLabel("Drag here a midi file");
+		description = new JLabel("Please load a midi file");
 
 		songIcon.setMinimumSize(new Dimension(50, 50));
 		songIcon.setPreferredSize(new Dimension(100, 100));
