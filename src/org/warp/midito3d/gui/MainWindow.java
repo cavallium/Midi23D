@@ -36,7 +36,6 @@ import org.warp.midito3d.printers.GCodeOutput;
 import org.warp.midito3d.printers.Printer;
 import org.warp.midito3d.printers.Printer3Axes;
 
-import com.seaglasslookandfeel.SeaGlassLookAndFeel;
 import com.sun.javafx.application.PlatformImpl;
 
 import javafx.application.Platform;
