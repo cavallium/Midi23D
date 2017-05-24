@@ -140,7 +140,7 @@ public class MainWindow extends JFrame {
 				ModernDialog diag = new ModernDialog();
 				diag.setTitle("Open Midi File");
 				diag.setExtensions(new ModernExtensionFilter("Midi files", "*.midi", "*.mid"), new ModernExtensionFilter("All files", "*.*"));
-				File f = diag.show();
+				File f = diag.show(this);
 				if (f != null && f.exists()) {
 					importMidi(f);
 				}
@@ -189,7 +189,7 @@ public class MainWindow extends JFrame {
 			ModernDialog diag = new ModernDialog();
 			diag.setTitle("Save G-CODE File");
 			diag.setExtensions(new ModernExtensionFilter("G-CODE files", "*.gcode", "*.gco"), new ModernExtensionFilter("All files", "*.*"));
-			File f = diag.showSaveDialog();
+			File f = diag.showSaveDialog(this);
 			if (f != null) {
 				exportMidi(f);
 			}
