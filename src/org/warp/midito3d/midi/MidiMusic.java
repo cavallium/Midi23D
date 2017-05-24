@@ -26,7 +26,7 @@ import javax.sound.midi.Track;
 public class MidiMusic {
 	
 	private final Sequence sequence;
-	private int tempo = 500000;
+	private double tempo = 500000;
 	private double speedMultiplier = 1.0d;
 	private float toneMultiplier = 1.0f;
 	private Channel[] channels;
@@ -129,7 +129,7 @@ public class MidiMusic {
                 	if (mm.getType() == SET_TEMPO) {
                     	byte[] data = mm.getData();
                     	this.out.println("Tempo change: "+ ((data[0] & 0xff) << 16 | (data[1] & 0xff) << 8 | (data[2] & 0xff)));
-                    	tempo = (int) (((double)((data[0] & 0xff) << 16 | (data[1] & 0xff) << 8 | (data[2] & 0xff)))/speedMultiplier);
+                    	tempo = ((double)((data[0] & 0xff) << 16 | (data[1] & 0xff) << 8 | (data[2] & 0xff)))/speedMultiplier;
                     } else if (mm.getType() == TEXT) {
                         this.out.println("Title: " + new String(mm.getData()));
                     } else if (mm.getType() == END_OF_TRACK) {
@@ -296,7 +296,7 @@ public class MidiMusic {
 		switch(duplicateMode) {
 			case 1:
 				if (notes > 1) {
-					maxNote = new Note((int)((double)maxNote.note / (double)notes), (int)((double)maxNote.velocity / (double)notes), maxNote.startTick);
+					maxNote = new Note((double)maxNote.note / (double)notes, (double)maxNote.velocity / (double)notes, maxNote.startTick);
 				}
 				break;
 		}
@@ -306,6 +306,7 @@ public class MidiMusic {
 	
 	public void setSpeedMultiplier(float val) {
 		speedMultiplier = val;
+		tempo/=speedMultiplier;
 	}
 
 	public void setToneMultiplier(float val) {

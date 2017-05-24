@@ -1,6 +1,9 @@
 package org.warp.midito3d.gui.printers;
 
+import org.warp.midito3d.PrinterArea;
 import org.warp.midito3d.printers.Motor;
+import org.warp.midito3d.printers.Printer;
+import org.warp.midito3d.printers.Printer3Axes;
 
 public class Model3Axes implements PrinterModel {
 	private MotorSetting[] motors;
@@ -45,6 +48,11 @@ public class Model3Axes implements PrinterModel {
 			default:
 				return "err";
 		}
+	}
+
+	@Override
+	public Printer3Axes createPrinterObject(PrinterModelArea printerModelArea) {
+		return new Printer3Axes(motors[0].createMotorObject(), motors[1].createMotorObject(), motors[2].createMotorObject(), printerModelArea.createAreaObject());
 	}
 
 }

@@ -18,6 +18,10 @@ public class GCodeOutput {
 		this.path = new File(path).toPath();
 	}
 
+	public GCodeOutput(File path) {
+		this.path = path.toPath();
+	}
+
 	public void openAndLock() throws IOException {
 		Files.deleteIfExists(path);
 		Files.createFile(path);

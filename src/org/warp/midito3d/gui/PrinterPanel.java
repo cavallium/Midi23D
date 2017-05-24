@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -28,6 +29,7 @@ import org.warp.midito3d.gui.printers.Model3Axes;
 import org.warp.midito3d.gui.printers.Model4Axes;
 import org.warp.midito3d.gui.printers.ModelZAxis;
 import org.warp.midito3d.gui.printers.PrinterModel;
+import org.warp.midito3d.gui.printers.PrinterModelArea;
 import org.warp.midito3d.printers.Printer;
 import org.warp.midito3d.printers.Printer3Axes;
 import org.warp.midito3d.printers.Printer4Axes;
@@ -40,6 +42,7 @@ public class PrinterPanel extends JPanel {
 	private static final long serialVersionUID = 3730582196639810443L;
 	private JImage modelImg;
 	private JPanel motorList;
+	private Component marginsImg;
 	
 	
 	public PrinterPanel() {
@@ -61,7 +64,7 @@ public class PrinterPanel extends JPanel {
 		c.weighty = 1;
 		c.gridx = 0;
 		c.gridy = 0;
-		c.gridwidth = 1;
+		c.gridwidth = 5;
 		c.gridheight = 2;
 		this.add(modelImg, c);
 		JLabel modelText = new JLabel("Model");
@@ -71,9 +74,9 @@ public class PrinterPanel extends JPanel {
 		c.anchor = GridBagConstraints.SOUTHWEST;
 		c.weightx = 0;
 		c.weighty = 1;
-		c.gridx = 1;
+		c.gridx = 5;
 		c.gridy = 0;
-		c.gridwidth = 1;
+		c.gridwidth = 5;
 		c.gridheight = 1;
 		this.add(modelText, c);
 		JComboBox<PrinterModel> modeList = new JComboBox<PrinterModel>(new PrinterModel[]{new ModelZAxis(), new Model3Axes(), new Model4Axes()});
@@ -84,15 +87,18 @@ public class PrinterPanel extends JPanel {
 		c.anchor = GridBagConstraints.NORTHWEST;
 		c.weightx = 0;
 		c.weighty = 1;
-		c.gridx = 1;
+		c.gridx = 5;
 		c.gridy = 1;
-		c.gridwidth = 1;
+		c.gridwidth = 4;
 		c.gridheight = 1;
 		this.add(modeList, c);
 		JLabel motorListText = new JLabel("Motors");
 		motorListText.setVerticalAlignment(JLabel.BOTTOM);
+		motorListText.setHorizontalAlignment(JLabel.CENTER);
+		Font f = motorListText.getFont();
+		motorListText.setFont(new Font(f.getFontName(), Font.BOLD, f.getSize()));
 		c.insets = new Insets(5,5,0,3);
-		c.fill = GridBagConstraints.NONE;
+		c.fill = GridBagConstraints.BOTH;
 		c.anchor = GridBagConstraints.SOUTHWEST;
 		c.weightx = 0;
 		c.weighty = 0;
@@ -113,9 +119,75 @@ public class PrinterPanel extends JPanel {
 		c.weighty = 0;
 		c.gridx = 0;
 		c.gridy = 3;
-		c.gridwidth = 2;
+		c.gridwidth = 10;
 		c.gridheight = 1;
 		this.add(motorList, c);
+		JPanel bottomPan = new JPanel();
+		bottomPan.setMinimumSize(new Dimension(300,100));
+		bottomPan.setMaximumSize(new Dimension(300,100));
+		bottomPan.setLayout(null);
+		bottomPan.setBackground(this.getBackground());
+		c.insets = new Insets(5,5,5,5);
+		c.fill = GridBagConstraints.NONE;
+		c.anchor = GridBagConstraints.CENTER;
+		c.weightx = 0;
+		c.weighty = 0;
+		c.gridx = 0;
+		c.gridy = 4;
+		c.gridwidth = 10;
+		c.gridheight = 1;
+		this.add(bottomPan, c);
+		MainWindow.INSTANCE.printerModelArea = new PrinterModelArea(new int[]{200,200,10}, new int[]{15,15,2});
+		final JSpinner zSize = new JSpinner(new SpinnerNumberModel(MainWindow.INSTANCE.printerModelArea.size[2], 1, 1000, 1));
+		zSize.setSize(45,20);
+		zSize.setLocation(00,50);
+		zSize.addChangeListener((ChangeEvent e)->{
+				MainWindow.INSTANCE.printerModelArea.size[2] = (int) zSize.getValue();
+		});
+		bottomPan.add(zSize, c);
+		final JSpinner xSize = new JSpinner(new SpinnerNumberModel(MainWindow.INSTANCE.printerModelArea.size[0], 1, 1000, 1));
+		xSize.setSize(45,20);
+		xSize.setLocation(10,80);
+		xSize.addChangeListener((ChangeEvent e)->{
+			MainWindow.INSTANCE.printerModelArea.size[0] = (int) xSize.getValue();
+		});
+		bottomPan.add(xSize, c);
+		final JSpinner ySize = new JSpinner(new SpinnerNumberModel(MainWindow.INSTANCE.printerModelArea.size[1], 1, 1000, 1));
+		ySize.setSize(45,20);
+		ySize.setLocation(95,80);
+		ySize.addChangeListener((ChangeEvent e)->{
+				MainWindow.INSTANCE.printerModelArea.size[1] = (int) ySize.getValue();
+		});
+		bottomPan.add(ySize, c);
+		final JSpinner yMargin = new JSpinner(new SpinnerNumberModel(MainWindow.INSTANCE.printerModelArea.margins[1], 1, 1000, 1));
+		yMargin.setSize(45,20);
+		yMargin.setLocation(145,15);
+		yMargin.addChangeListener((ChangeEvent e)->{
+				MainWindow.INSTANCE.printerModelArea.margins[1] = (int) yMargin.getValue();
+		});
+		bottomPan.add(yMargin, c);
+		final JSpinner zMargin = new JSpinner(new SpinnerNumberModel(MainWindow.INSTANCE.printerModelArea.margins[2], 1, 1000, 1));
+		zMargin.setSize(45,20);
+		zMargin.setLocation(120,55);
+		zMargin.addChangeListener((ChangeEvent e)->{
+				MainWindow.INSTANCE.printerModelArea.margins[2] = (int) zMargin.getValue();
+		});
+		bottomPan.add(zMargin, c);
+		final JSpinner xMargin = new JSpinner(new SpinnerNumberModel(MainWindow.INSTANCE.printerModelArea.margins[0], 1, 1000, 1));
+		xMargin.setSize(45,20);
+		xMargin.setLocation(235,15);
+		xMargin.addChangeListener((ChangeEvent e)->{
+				MainWindow.INSTANCE.printerModelArea.margins[0] = (int) xMargin.getValue();
+		});
+		bottomPan.add(xMargin, c);
+		JImage areaImg = JImage.loadFromResources("PrinterArea100.png");
+		areaImg.setSize(100, 100);
+		areaImg.setLocation(25, 0);
+		bottomPan.add(areaImg, c);
+		marginsImg = JImage.loadFromResources("PrinterMargins100.png");
+		marginsImg.setSize(100, 100);
+		marginsImg.setLocation(160, 0);
+		bottomPan.add(marginsImg, c);
 		
 		modeList.addItemListener(new ItemListener(){
 			@Override

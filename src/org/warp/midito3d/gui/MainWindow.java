@@ -1,6 +1,7 @@
 package org.warp.midito3d.gui;
 
 import java.awt.Color;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -13,6 +14,7 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.RenderingHints;
 import java.awt.Toolkit;
+import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
@@ -20,14 +22,27 @@ import javax.sound.midi.InvalidMidiDataException;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
+import org.warp.midito3d.Midi23D;
+import org.warp.midito3d.gui.printers.Model3Axes;
 import org.warp.midito3d.gui.printers.PrinterModel;
 import org.warp.midito3d.gui.printers.PrinterModelArea;
 import org.warp.midito3d.midi.MidiMusic;
+import org.warp.midito3d.midi.MidiMusicEvent;
 import org.warp.midito3d.midi.MidiParser;
+import org.warp.midito3d.printers.GCodeOutput;
+import org.warp.midito3d.printers.Printer;
+import org.warp.midito3d.printers.Printer3Axes;
 
 import com.seaglasslookandfeel.SeaGlassLookAndFeel;
+import com.sun.javafx.application.PlatformImpl;
+
+import javafx.application.Platform;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
+import javafx.stage.Stage;
 
 public class MainWindow extends JFrame {
 	
@@ -38,6 +53,8 @@ public class MainWindow extends JFrame {
 
 	public PrinterModel printerModel;
 	public PrinterModelArea printerModelArea;
+	public MidiMusic midi;
+	public JButton exportBtn;
 	
 	public MainWindow() {
 		INSTANCE = this;
@@ -54,7 +71,7 @@ public class MainWindow extends JFrame {
 		JLabel leftPanelName = new JLabel("Input song");
 		songPanel = new OpenSongPanel();
 		JButton openMidiButton = new JButton("Open...");
-
+		exportBtn = new JButton("Export...");
 
 		JLabel rightPanelName = new JLabel("Printer settings");
 		PrinterPanel printerPanel = new PrinterPanel();
@@ -83,6 +100,14 @@ public class MainWindow extends JFrame {
 		c.gridy = 2;
 		c.gridwidth = 1;
 		leftPanel.add(openMidiButton, c);
+		c.insets = new Insets(5,5,5,3);
+		c.fill = GridBagConstraints.VERTICAL;
+		c.anchor = GridBagConstraints.NORTHWEST;
+		c.weightx = 1;
+		c.weighty = 0;
+		c.gridy = 2;
+		c.gridwidth = 1;
+		leftPanel.add(exportBtn, c);
 
 		c.insets = new Insets(5,2,2,5);
 		c.fill = GridBagConstraints.BOTH;
@@ -106,8 +131,8 @@ public class MainWindow extends JFrame {
 		leftPanel.setBackground(Color.white);
 		rightPanel.setBackground(Color.white);
 		this.setBackground(Color.white);
-		this.setMinimumSize(new Dimension(400, 250));
-		this.setPreferredSize(new Dimension(760, 360));
+		this.setMinimumSize(new Dimension(630, 370));
+		this.setPreferredSize(new Dimension(640, 400));
 		this.pack();
 		
 		this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -116,23 +141,80 @@ public class MainWindow extends JFrame {
 		leftPanelName.setFont(this.getFont());
 		songPanel.setFont(this.getFont());
 		openMidiButton.setFont(this.getFont());
+		PlatformImpl.startup(()->{});
+		openMidiButton.addActionListener((e)->{
+			Platform.runLater(()->{
+				FileChooser fileChooser = new FileChooser();
+				fileChooser.setTitle("Open Midi File");
+				fileChooser.getExtensionFilters().setAll(new ExtensionFilter("Midi files", "*.midi", "*.mid"), new ExtensionFilter("All files", "*.*"));
+				File f = fileChooser.showOpenDialog(null);
+				if (f != null && f.exists()) {
+					importMidi(f);
+				}
+			});
+		});
+		exportBtn.setFont(this.getFont());
+		exportBtn.addActionListener((e)->{
+			exportMidiDialog();
+		});
+		exportBtn.setVisible(false);
 		rightPanel.setFont(this.getFont());
 		rightPanelName.setFont(this.getFont());
 		printerPanel.setFont(this.getFont());
 	}
 	
-	public void execute() {
-		this.setVisible(true);
-	}
-	
-	public static void openSong(String file) {
-		MidiMusic music;
+	private synchronized void importMidi(File f) {
 		try {
-			music = MidiParser.loadFrom(file);
-			INSTANCE.songPanel = new InputSongPanel(music);
+			MidiMusic mus = MidiParser.loadFrom(f.toString());
+			mus.setSpeedMultiplier(2f);
+			this.midi = mus;
+			Container parent = songPanel.getParent();
+			parent.remove(songPanel);
+			songPanel = new InputSongPanel(f, mus);
+			songPanel.setMinimumSize(new Dimension(150, 130));
+			songPanel.setPreferredSize(new Dimension(350, 200));
+			songPanel.setMaximumSize(new Dimension(350, 200));
+			songPanel.setFont(this.getFont());
+			GridBagConstraints c = new GridBagConstraints();
+			c.fill = GridBagConstraints.BOTH;
+			c.insets = new Insets(0,5,0,3);
+			c.weightx = 1;
+			c.weighty = 1;
+			c.gridy = 1;
+			c.gridwidth = 2;
+			parent.add(songPanel,c);
+			exportBtn.setVisible(true);
+			this.validate();
+			this.repaint();
 		} catch (InvalidMidiDataException | IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private synchronized void exportMidiDialog() {
+		Platform.runLater(()->{
+			FileChooser fileChooser = new FileChooser();
+			fileChooser.setTitle("Save G-CODE file");
+			fileChooser.getExtensionFilters().setAll(new ExtensionFilter("G-CODE files", "*.gcode", "*.gco"), new ExtensionFilter("All files", "*.*"));
+			File f = fileChooser.showSaveDialog(null);
+			if (f != null) {
+				exportMidi(f);
+			}
+		});
+	}
+	
+	private synchronized void exportMidi(File output) {
+		Printer p = printerModel.createPrinterObject(printerModelArea);
+		Midi23D midi23D = new Midi23D(p, midi, new GCodeOutput(output), false);
+		try {
+			midi23D.run();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public synchronized void execute() {
+		this.setVisible(true);
 	}
 	
 	/*
