@@ -28,7 +28,7 @@ Drag and drop the generated file into Repetier Host or your program that control
 
 Enjoy
 
-# [Samples](https://warp.ovh/?page=elettronica/midi23D)
+# [Download samples and MIDIs](https://warp.ovh/?page=elettronica/midi23D)
 
 # Videos
 [![Video](http://img.youtube.com/vi/4rcnu8j1Xqk/0.jpg)](https://www.youtube.com/embed/4rcnu8j1Xqk)
