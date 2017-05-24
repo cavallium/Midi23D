@@ -1,6 +1,8 @@
 # Midi23D
 **Midi23D** is a tool made in Java that converts every note of a .midi music into GCODE instructions to send directly to a 3D printer.
 
+![GUI](http://gdb.altervista.org/downloads/gui.png)
+
 # How it works?
 Every 3D printer has 3 or more particular motors, called *stepper motors*. Despite of the regular DC motors their angular speed and rotation be controlled very precisely.
 
@@ -29,4 +31,4 @@ Enjoy
 # [Samples](https://warp.ovh/?page=elettronica/midi23D)
 
 # Videos
-[![IMAGE ALT TEXT HERE](http://img.youtube.com/vi/4rcnu8j1Xqk/0.jpg)](https://www.youtube.com/embed/4rcnu8j1Xqk)
+[![Video](http://img.youtube.com/vi/4rcnu8j1Xqk/0.jpg)](https://www.youtube.com/embed/4rcnu8j1Xqk)
