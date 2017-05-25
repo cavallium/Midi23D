@@ -57,7 +57,7 @@ public class MainWindow extends JFrame {
 		
 		GridBagConstraints c = new GridBagConstraints();
 		
-		JPanel mainPanel = new JPanel(new GridLayout(1, 2));
+		JPanel mainPanel = new JPanel(new GridBagLayout());
 		
 		JPanel leftPanel = new JPanel(new GridBagLayout());
 		JPanel rightPanel = new JPanel(new GridBagLayout());
@@ -72,8 +72,20 @@ public class MainWindow extends JFrame {
 		
 		this.add(mainPanel);
 
-		mainPanel.add(leftPanel);
-		mainPanel.add(rightPanel);
+		c.insets = new Insets(0,0,0,0);
+		c.fill = GridBagConstraints.BOTH;
+		c.weightx = 1.5;
+		c.weighty = 1;
+		c.gridx = 0;
+		c.gridy = 0;
+		mainPanel.add(leftPanel,c);
+		c.insets = new Insets(0,0,0,0);
+		c.fill = GridBagConstraints.BOTH;
+		c.weightx = 2;
+		c.weighty = 1;
+		c.gridx = 1;
+		c.gridy = 0;
+		mainPanel.add(rightPanel,c);
 
 		c.insets = new Insets(5,5,2,3);
 		c.fill = GridBagConstraints.BOTH;

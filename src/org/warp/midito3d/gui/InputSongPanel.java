@@ -10,6 +10,9 @@ import java.io.File;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeEvent;
 
 import org.warp.midito3d.midi.MidiMusic;
 
@@ -54,7 +57,7 @@ public class InputSongPanel extends SongPanel {
 		c.fill = GridBagConstraints.BOTH;
 		c.gridx = 1;
 		c.gridy = 0;
-		c.gridwidth = 1;
+		c.gridwidth = 2;
 		c.gridheight = 1;
 		c.weightx = 1;
 		c.weighty = 0;
@@ -64,11 +67,69 @@ public class InputSongPanel extends SongPanel {
 		c.fill = GridBagConstraints.BOTH;
 		c.gridx = 1;
 		c.gridy = 1;
-		c.gridwidth = 1;
+		c.gridwidth = 2;
 		c.gridheight = 1;
-		c.weightx = 1;
+		c.weightx = 0;
 		c.weighty = 0;
 		add(new JLabel(fileName.toString()), c);
+		JLabel label = new JLabel("Song speed");
+		label.setMinimumSize(new Dimension(130, 20));
+		c.insets = new Insets(5,5,5,5);
+		c.anchor = GridBagConstraints.NORTHWEST;
+		c.fill = GridBagConstraints.BOTH;
+		c.gridx = 0;
+		c.gridy = 2;
+		c.gridwidth = 2;
+		c.gridheight = 1;
+		c.weightx = 0;
+		c.weighty = 0;
+		add(label, c);
+		final JSpinner speedAdj = new JSpinner(new SpinnerNumberModel(1, 0.125, 4, 0.125));
+		speedAdj.setMinimumSize(new Dimension(75, 20));
+		speedAdj.setPreferredSize(new Dimension(75, 20));
+		speedAdj.setMaximumSize(new Dimension(75, 20));
+		speedAdj.addChangeListener((ChangeEvent e)->{
+				midi.setSpeedMultiplier((float)((double)speedAdj.getValue()));
+		});
+		c.insets = new Insets(5,5,5,5);
+		c.anchor = GridBagConstraints.NORTHEAST;
+		c.fill = GridBagConstraints.VERTICAL;
+		c.gridx = 2;
+		c.gridy = 2;
+		c.gridwidth = 1;
+		c.gridheight = 1;
+		c.weightx = 0;
+		c.weighty = 0;
+		add(speedAdj, c);
+		label = new JLabel("Tone multiplier");
+		label.setMinimumSize(new Dimension(130, 20));
+		c.insets = new Insets(5,5,5,5);
+		c.anchor = GridBagConstraints.NORTHWEST;
+		c.fill = GridBagConstraints.BOTH;
+		c.gridx = 0;
+		c.gridy = 3;
+		c.gridwidth = 2;
+		c.gridheight = 1;
+		c.weightx = 0;
+		c.weighty = 0;
+		add(label, c);
+		final JSpinner toneAdj = new JSpinner(new SpinnerNumberModel(1, 0.01, 100, 0.25));
+		toneAdj.setMinimumSize(new Dimension(75, 20));
+		toneAdj.setPreferredSize(new Dimension(75, 20));
+		toneAdj.setMaximumSize(new Dimension(75, 20));
+		toneAdj.addChangeListener((ChangeEvent e)->{
+				midi.setToneMultiplier((float)((double)toneAdj.getValue()));
+		});
+		c.insets = new Insets(5,5,5,5);
+		c.anchor = GridBagConstraints.NORTHEAST;
+		c.fill = GridBagConstraints.VERTICAL;
+		c.gridx = 2;
+		c.gridy = 3;
+		c.gridwidth = 1;
+		c.gridheight = 1;
+		c.weightx = 0;
+		c.weighty = 0;
+		add(toneAdj, c);
 		
 		description.setForeground(Color.DARK_GRAY);
 	}
