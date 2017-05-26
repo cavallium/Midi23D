@@ -91,6 +91,7 @@ public class MainWindow extends JFrame {
 		c.fill = GridBagConstraints.BOTH;
 		c.weightx = 0;
 		c.weighty = 0;
+		c.gridx = 0;
 		c.gridy = 0;
 		c.gridwidth = 2;
 		leftPanel.add(leftPanelName, c);
@@ -103,6 +104,7 @@ public class MainWindow extends JFrame {
 		c.insets = new Insets(5,5,5,3);
 		c.weightx = 0;
 		c.weighty = 0;
+		c.gridx = 0;
 		c.gridy = 2;
 		c.gridwidth = 1;
 		leftPanel.add(openMidiButton, c);
@@ -111,6 +113,7 @@ public class MainWindow extends JFrame {
 		c.anchor = GridBagConstraints.NORTHWEST;
 		c.weightx = 1;
 		c.weighty = 0;
+		c.gridx = 1;
 		c.gridy = 2;
 		c.gridwidth = 1;
 		leftPanel.add(exportBtn, c);
@@ -119,6 +122,7 @@ public class MainWindow extends JFrame {
 		c.fill = GridBagConstraints.BOTH;
 		c.weightx = 0;
 		c.weighty = 0;
+		c.gridx = 0;
 		c.gridy = 0;
 		c.gridwidth = 2;
 		rightPanel.add(rightPanelName, c);
