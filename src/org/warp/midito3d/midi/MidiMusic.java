@@ -107,7 +107,14 @@ public class MidiMusic {
                         	int control = sm.getData1();
                         	if (control == 7 /* 7: Main Volume */) {
                                 al.add(new MainVolumeEvent(((double)sm.getData2())/127d));
-                            	this.out.println("[Channel "+channelNumber+" buf."+bufferNumber+"] Volume value: "+((double)sm.getData2())/127d);
+                            	this.out.println("[Channel "+channelNumber+" buf."+bufferNumber+"] (CC07) Volume value: "+((double)sm.getData2())/127d);
+                        	} else if (control == 11 /* 11: Main Volume during track */) {
+                                al.add(new MainVolumeEvent(((double)sm.getData2())/127d));
+                            	this.out.println("[Channel "+channelNumber+" buf."+bufferNumber+"] (CC11) Volume value: "+((double)sm.getData2())/127d);
+                        	} else if (control == 0 /* 0 Bank Select (followed by 32) */) {
+                            	this.out.println("[Channel "+channelNumber+" buf."+bufferNumber+"] (CC00) Bank select (not implemented)");
+                        	} else if (control == 32 /* 32 Bank Select */) {
+                            	this.out.println("[Channel "+channelNumber+" buf."+bufferNumber+"] (CC32) Bank select (not implemented)");
                         	} else {
                             	this.out.println("[Channel "+channelNumber+" buf."+bufferNumber+"] Control change: "+sm.getData1());
                         	}
@@ -133,7 +140,7 @@ public class MidiMusic {
                     } else if (mm.getType() == TEXT) {
                         this.out.println("Title: " + new String(mm.getData()));
                     } else if (mm.getType() == END_OF_TRACK) {
-//                        this.out.println("End of track.");
+                        this.out.println("End of track.");
                     } else {
                         this.out.println("Unknown meta message: " + mm.getType());
                     }
@@ -201,6 +208,43 @@ public class MidiMusic {
 				if (events == null) {
 					
 				} else {
+					for (MidiMusicEvent e : events) {
+						if (e instanceof NoteEvent) {
+							NoteEvent ne = (NoteEvent) e;
+							
+//							boolean isDrum = false;
+//							for (int drum = 0; drum < drumPrograms.length; drum++) {
+//								if (channels[ch].currentProgram == drumPrograms[drum]) {
+//									isDrum = true;
+//									break;
+//								}
+//							}
+							if (ne.state) {
+								if (delta != 1 && !channels[ch].activeNotes.containsKey(ne.note)) {
+									delta--;
+									stop = true;
+									break;
+								}
+								channels[ch].activeNotes.put(ne.note, new Note(ne.note, ne.velocity, currentTick+delta));
+							} else {
+								if (delta != 1 && channels[ch].activeNotes.containsKey(ne.note)) {
+									delta--;
+									stop = true;
+									break;
+								}
+								channels[ch].activeNotes.remove(ne.note);
+							}
+						} else if (e instanceof MainVolumeEvent) {
+							MainVolumeEvent mve = (MainVolumeEvent) e;
+							channels[ch].currentVolume = mve.volume;
+						} else if (e instanceof PitchEvent) {
+							PitchEvent pe = (PitchEvent) e;
+							channels[ch].currentPitch = pe.pitch;
+						} else if (e instanceof ProgramEvent) {
+							ProgramEvent pe = (ProgramEvent) e;
+							channels[ch].currentProgram = pe.program;
+						}
+					}
 					for (MidiMusicEvent e : events) {
 						if (e instanceof NoteEvent) {
 							NoteEvent ne = (NoteEvent) e;

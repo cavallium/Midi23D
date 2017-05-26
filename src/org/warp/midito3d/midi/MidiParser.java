@@ -20,9 +20,13 @@ import javax.sound.midi.spi.MidiFileReader;
 public class MidiParser {
 	
 	public static MidiMusic loadFrom(String string) throws InvalidMidiDataException, IOException {
+		return loadFrom(string, false);
+	}
+	
+	public static MidiMusic loadFrom(String string, boolean debug) throws InvalidMidiDataException, IOException {
 		Sequence sequence = MidiSystem.getSequence(new File(string));
 		
-		MidiMusic m = new MidiMusic(sequence);
+		MidiMusic m = new MidiMusic(sequence, debug);
 		
 		return m;
 	}

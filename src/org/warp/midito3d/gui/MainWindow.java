@@ -18,7 +18,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
+import javax.imageio.ImageIO;
 import javax.sound.midi.InvalidMidiDataException;
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -53,6 +55,12 @@ public class MainWindow extends JFrame {
 	public MainWindow() {
 		INSTANCE = this;
 		
+		try {
+			this.setIconImage(ImageIO.read(new File("res/3DPrinter128.png")));
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		this.setTitle("Midi23D");
 		this.setLayout(new GridLayout(1, 1));
 		
 		GridBagConstraints c = new GridBagConstraints();
@@ -174,8 +182,7 @@ public class MainWindow extends JFrame {
 	
 	private synchronized void importMidi(File f) {
 		try {
-			MidiMusic mus = MidiParser.loadFrom(f.toString());
-			mus.setSpeedMultiplier(1f);
+			MidiMusic mus = MidiParser.loadFrom(f.toString(), true);
 			this.midi = mus;
 			Container parent = songPanel.getParent();
 			parent.remove(songPanel);
