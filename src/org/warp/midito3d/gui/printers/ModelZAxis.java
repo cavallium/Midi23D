@@ -1,8 +1,5 @@
 package org.warp.midito3d.gui.printers;
 
-import org.warp.midito3d.printers.Motor;
-import org.warp.midito3d.printers.Printer;
-import org.warp.midito3d.printers.Printer3Axes;
 import org.warp.midito3d.printers.PrinterZAxis;
 
 public class ModelZAxis implements PrinterModel {

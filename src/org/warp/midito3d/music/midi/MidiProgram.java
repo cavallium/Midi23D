@@ -1,6 +1,6 @@
-package org.warp.midito3d.midi;
+package org.warp.midito3d.music.midi;
 
-public class MidiProgram {
+class MidiProgram {
 
 	public final int id;
 	public final int duration;

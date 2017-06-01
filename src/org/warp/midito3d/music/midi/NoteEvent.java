@@ -1,6 +1,6 @@
-package org.warp.midito3d.midi;
+package org.warp.midito3d.music.midi;
 
-public class NoteEvent implements MidiMusicEvent {
+class NoteEvent implements MidiMusicEvent {
 	public final boolean state;
 	public final int note;
 	public final int velocity;

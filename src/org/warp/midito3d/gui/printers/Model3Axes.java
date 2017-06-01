@@ -1,8 +1,5 @@
 package org.warp.midito3d.gui.printers;
 
-import org.warp.midito3d.PrinterArea;
-import org.warp.midito3d.printers.Motor;
-import org.warp.midito3d.printers.Printer;
 import org.warp.midito3d.printers.Printer3Axes;
 
 public class Model3Axes implements PrinterModel {

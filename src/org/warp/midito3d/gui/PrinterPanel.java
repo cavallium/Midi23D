@@ -3,18 +3,14 @@ package org.warp.midito3d.gui;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box.Filler;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.BoxLayout;
@@ -22,20 +18,14 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
-import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingConstants;
 
 import org.warp.midito3d.gui.printers.Model3Axes;
 import org.warp.midito3d.gui.printers.Model4Axes;
 import org.warp.midito3d.gui.printers.ModelZAxis;
 import org.warp.midito3d.gui.printers.PrinterModel;
 import org.warp.midito3d.gui.printers.PrinterModelArea;
-import org.warp.midito3d.printers.Printer;
-import org.warp.midito3d.printers.Printer3Axes;
-import org.warp.midito3d.printers.Printer4Axes;
-import org.warp.midito3d.printers.PrinterZAxis;
-
-import javafx.scene.layout.StackPane;
 
 public class PrinterPanel extends JPanel {
 
@@ -68,7 +58,7 @@ public class PrinterPanel extends JPanel {
 		c.gridheight = 2;
 		this.add(modelImg, c);
 		JLabel modelText = new JLabel("Model");
-		modelText.setVerticalAlignment(JLabel.BOTTOM);
+		modelText.setVerticalAlignment(SwingConstants.BOTTOM);
 		c.insets = new Insets(5,5,0,3);
 		c.fill = GridBagConstraints.VERTICAL;
 		c.anchor = GridBagConstraints.SOUTHWEST;
@@ -93,8 +83,8 @@ public class PrinterPanel extends JPanel {
 		c.gridheight = 1;
 		this.add(modeList, c);
 		JLabel motorListText = new JLabel("Motors");
-		motorListText.setVerticalAlignment(JLabel.BOTTOM);
-		motorListText.setHorizontalAlignment(JLabel.CENTER);
+		motorListText.setVerticalAlignment(SwingConstants.BOTTOM);
+		motorListText.setHorizontalAlignment(SwingConstants.CENTER);
 		Font f = motorListText.getFont();
 		motorListText.setFont(new Font(f.getFontName(), Font.BOLD, f.getSize()));
 		c.insets = new Insets(5,5,0,3);
@@ -214,7 +204,7 @@ public class PrinterPanel extends JPanel {
 			p.setBackground(new Color(0,0,0,0));
 
 			JLabel motLabel = new JLabel(model.getMotorName(i));
-			motLabel.setVerticalAlignment(JLabel.CENTER);
+			motLabel.setVerticalAlignment(SwingConstants.CENTER);
 			motLabel.setMinimumSize(new Dimension(50,20));
 			motLabel.setPreferredSize(new Dimension(50,20));
 			motLabel.setMaximumSize(new Dimension(9999,20));

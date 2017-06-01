@@ -1,6 +1,6 @@
-package org.warp.midito3d.midi;
+package org.warp.midito3d.music.midi;
 
-public class PitchEvent implements MidiMusicEvent {
+class PitchEvent implements MidiMusicEvent {
 	public final double pitch;
 
 	public PitchEvent(double pitch) {

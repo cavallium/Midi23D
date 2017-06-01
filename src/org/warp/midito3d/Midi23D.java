@@ -1,23 +1,21 @@
 package org.warp.midito3d;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Locale;
-import org.warp.midito3d.midi.MidiMusic;
-import org.warp.midito3d.midi.Note;
+
+import org.warp.midito3d.music.Music;
+import org.warp.midito3d.music.Note;
 import org.warp.midito3d.printers.GCodeOutput;
 import org.warp.midito3d.printers.Printer;
 
 public final class Midi23D {
 
 	public final Printer printer;
-	public final MidiMusic music;
+	public final Music music;
 	public final GCodeOutput output;
 	public final boolean motorTest;
 	
-	public Midi23D(Printer printer, MidiMusic music, GCodeOutput output, boolean motorTest) {
+	public Midi23D(Printer printer, Music music, GCodeOutput output, boolean motorTest) {
 		this.printer = printer;
 		this.music = music;
 		this.output = output;
@@ -31,6 +29,7 @@ public final class Midi23D {
 		output.openAndLock();
 		
 		music.setOutputChannelsCount(motorTest?1:motorsCount);
+		music.reanalyze();
 
 		long previousTick;
 		long currentTick = -1;
@@ -44,7 +43,7 @@ public final class Midi23D {
 
 			double[] frequency = new double[motorsCount];
 			double[] speed = new double[motorsCount];
-			double time = ((((double)(currentTick-previousTick))/music.getDivision()) * (music.getTempo()/60000000d));
+			double time = (((currentTick-previousTick)/music.getDivision()) * music.getTempo());
 			boolean didSomething = false;
 			String frequenciesString = "";
 			
@@ -52,13 +51,13 @@ public final class Midi23D {
 				Note note = music.getCurrentNote(channel);
 				
 				if (note != null) {
-					frequency[channel] = Math.pow(2d, ((((double)note.note)*music.getChannelPitch(channel))-69d)/12d)*440d;
-					speed[channel] = (frequency[channel] * ((double)note.velocity) /* * ((double)music.getChannelVolume(channel)) */) / (((double)printer.getMotor(channel).getPPI()) / music.getToneMultiplier());
+					frequency[channel] = note.calculateFreq(music.getChannelPitch(channel));
+					speed[channel] = (frequency[channel] * note.velocity /* * ((double)music.getChannelVolume(channel)) */) / (((double)printer.getMotor(channel).getPPI()) / music.getToneMultiplier());
 					
 					didSomething = speed[channel] > 0;
 				}
 				
-				frequenciesString += String.format(Locale.US, ", %.3f", speed[channel]);
+				frequenciesString += String.format(Locale.US, ", %.3fHz", frequency[channel]);
 			}
 			
 			System.out.println(String.format("Chord: [%s] for %d deltas", frequenciesString.substring(2), (currentTick-previousTick)));

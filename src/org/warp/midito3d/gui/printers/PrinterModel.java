@@ -1,9 +1,5 @@
 package org.warp.midito3d.gui.printers;
 
-import java.io.IOException;
-
-import org.warp.midito3d.printers.GCodeOutput;
-import org.warp.midito3d.printers.Motor;
 import org.warp.midito3d.printers.Printer;
 
 public interface PrinterModel {

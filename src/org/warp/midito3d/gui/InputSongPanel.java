@@ -12,9 +12,10 @@ import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 
-import org.warp.midito3d.midi.MidiMusic;
+import org.warp.midito3d.music.Music;
 
 public class InputSongPanel extends SongPanel {
 
@@ -22,10 +23,8 @@ public class InputSongPanel extends SongPanel {
 
 	public final JImage songIcon;
 	public final JLabel description;
-	private final MidiMusic midi;
 	
-	public InputSongPanel(File fileName, MidiMusic music) {
-		this.midi = music;
+	public InputSongPanel(File fileName, Music music) {
 		
 		GridBagConstraints c = new GridBagConstraints();
 		
@@ -51,7 +50,7 @@ public class InputSongPanel extends SongPanel {
 		description = new JLabel(fileName.getName());
 		description.setMinimumSize(new Dimension(10, 32-5-5));
 		description.setMaximumSize(new Dimension(999999, 32-5-5));
-		description.setVerticalAlignment(JLabel.BOTTOM);
+		description.setVerticalAlignment(SwingConstants.BOTTOM);
 		c.insets = new Insets(5,5,5,5);
 		c.anchor = GridBagConstraints.SOUTHWEST;
 		c.fill = GridBagConstraints.BOTH;
@@ -89,7 +88,7 @@ public class InputSongPanel extends SongPanel {
 		speedAdj.setPreferredSize(new Dimension(75, 20));
 		speedAdj.setMaximumSize(new Dimension(75, 20));
 		speedAdj.addChangeListener((ChangeEvent e)->{
-				midi.setSpeedMultiplier((float)((double)speedAdj.getValue()));
+				music.setSpeedMultiplier((float)((double)speedAdj.getValue()));
 		});
 		c.insets = new Insets(5,5,5,5);
 		c.anchor = GridBagConstraints.NORTHEAST;
@@ -118,7 +117,7 @@ public class InputSongPanel extends SongPanel {
 		toneAdj.setPreferredSize(new Dimension(75, 20));
 		toneAdj.setMaximumSize(new Dimension(75, 20));
 		toneAdj.addChangeListener((ChangeEvent e)->{
-				midi.setToneMultiplier((float)((double)toneAdj.getValue()));
+				music.setToneMultiplier((float)((double)toneAdj.getValue()));
 		});
 		c.insets = new Insets(5,5,5,5);
 		c.anchor = GridBagConstraints.NORTHEAST;

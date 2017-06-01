@@ -8,8 +8,8 @@ import java.util.Scanner;
 
 import javax.sound.midi.InvalidMidiDataException;
 
-import org.warp.midito3d.midi.MidiMusic;
-import org.warp.midito3d.midi.MidiParser;
+import org.warp.midito3d.music.Music;
+import org.warp.midito3d.music.midi.MidiParser;
 import org.warp.midito3d.printers.GCodeOutput;
 import org.warp.midito3d.printers.Motor;
 import org.warp.midito3d.printers.Printer;
@@ -42,7 +42,7 @@ public class CommandLineManager {
 				System.exit(1);
 			}
 
-			MidiMusic music = MidiParser.loadFrom(args[0]);
+			Music music = MidiParser.loadFrom(args[0], true);
 			
 			music.setBlacklistedChannels(blacklistedChannels);
 			music.setSpeedMultiplier(speedMultiplier);
@@ -67,10 +67,6 @@ public class CommandLineManager {
 			} else if (printerAxes == 4) {
 				printer = new Printer4Axes(motors[0], motors[1], motors[2], motors[3], new PrinterArea(10, 10, 10, 50, 50, 40));
 			}
-			
-			music.setDebugOutput(true);
-			
-			music.reanalyze();
 			
 			Midi23D Midi23D = new Midi23D(printer, music, output, motorTest);
 			Midi23D.run();

@@ -1,6 +1,6 @@
-package org.warp.midito3d.midi;
+package org.warp.midito3d.music.midi;
 
-public class ProgramEvent implements MidiMusicEvent {
+class ProgramEvent implements MidiMusicEvent {
 	public final int program;
 	
 	public ProgramEvent(int program) {

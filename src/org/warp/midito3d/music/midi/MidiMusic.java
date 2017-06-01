@@ -1,16 +1,12 @@
-package org.warp.midito3d.midi;
+package org.warp.midito3d.music.midi;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
-
 import javax.sound.midi.Instrument;
 import javax.sound.midi.MetaMessage;
 import javax.sound.midi.MidiEvent;
@@ -23,7 +19,10 @@ import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Synthesizer;
 import javax.sound.midi.Track;
 
-public class MidiMusic {
+import org.warp.midito3d.music.Music;
+import org.warp.midito3d.music.Note;
+
+class MidiMusic implements Music {
 	
 	private final Sequence sequence;
 	private double tempo = 500000;
@@ -39,10 +38,13 @@ public class MidiMusic {
     private static final int NOTE_ON = 0x90;
 	private static final int NOTE_OFF = 0x80;
 	private static final int SET_TEMPO = 0x51;
+	private static final int TIME_SIGNATURE = 0x58;
+	private static final int KEY_SIGNATURE = 0x59;
 	private static final int PROGRAM_CHANGE = 192;
 	private static final int CONTROL_CHANGE = 176;
 	private static final int PITCH_WHEEL = 224;
 	private static final int TEXT = 0x01;
+	private static final int TRACK_NAME = 0x03;
 	private static final int END_OF_TRACK = 0x2F;
 	
 	private PrintStream out;
@@ -54,9 +56,9 @@ public class MidiMusic {
     MidiMusic(Sequence sequence, boolean debug){
     	setDebugOutput(debug);
 		this.sequence = sequence;
-		reanalyze();
 	}
 	
+	@Override
 	public void reanalyze() {
 		channels = new Channel[channelsCount];
 		
@@ -106,11 +108,11 @@ public class MidiMusic {
                         } else if (sm.getCommand() == CONTROL_CHANGE) {
                         	int control = sm.getData1();
                         	if (control == 7 /* 7: Main Volume */) {
-                                al.add(new MainVolumeEvent(((double)sm.getData2())/127d));
-                            	this.out.println("[Channel "+channelNumber+" buf."+bufferNumber+"] (CC07) Volume value: "+((double)sm.getData2())/127d);
+                                al.add(new MainVolumeEvent((sm.getData2())/127d));
+                            	this.out.println("[Channel "+channelNumber+" buf."+bufferNumber+"] (CC07) Volume value: "+(sm.getData2())/127d);
                         	} else if (control == 11 /* 11: Main Volume during track */) {
-                                al.add(new MainVolumeEvent(((double)sm.getData2())/127d));
-                            	this.out.println("[Channel "+channelNumber+" buf."+bufferNumber+"] (CC11) Volume value: "+((double)sm.getData2())/127d);
+                                al.add(new MainVolumeEvent((sm.getData2())/127d));
+                            	this.out.println("[Channel "+channelNumber+" buf."+bufferNumber+"] (CC11) Volume value: "+(sm.getData2())/127d);
                         	} else if (control == 0 /* 0 Bank Select (followed by 32) */) {
                             	this.out.println("[Channel "+channelNumber+" buf."+bufferNumber+"] (CC00) Bank select (not implemented)");
                         	} else if (control == 32 /* 32 Bank Select */) {
@@ -124,7 +126,7 @@ public class MidiMusic {
                         } else if (sm.getCommand() == PITCH_WHEEL) {
                         	int data1 = sm.getData2();
                         	int data2 = sm.getData1();
-                        	double pitchVal = 1+(((double)(((data1 << 7) | data2)-8192))/8192d);
+                        	double pitchVal = 1+((((data1 << 7) | data2)-8192)/8192d);
                             al.add(new PitchEvent(pitchVal));
                         	this.out.println("[Channel "+channelNumber+" buf."+bufferNumber+"] Pitch wheel: "+(pitchVal));
                         } else {
@@ -136,11 +138,17 @@ public class MidiMusic {
                 	if (mm.getType() == SET_TEMPO) {
                     	byte[] data = mm.getData();
                     	this.out.println("Tempo change: "+ ((data[0] & 0xff) << 16 | (data[1] & 0xff) << 8 | (data[2] & 0xff)));
-                    	tempo = ((double)((data[0] & 0xff) << 16 | (data[1] & 0xff) << 8 | (data[2] & 0xff)))/speedMultiplier;
+                    	tempo = ((data[0] & 0xff) << 16 | (data[1] & 0xff) << 8 | (data[2] & 0xff))/speedMultiplier;
                     } else if (mm.getType() == TEXT) {
                         this.out.println("Title: " + new String(mm.getData()));
+                    } else if (mm.getType() == TRACK_NAME) {
+                        this.out.println("Track name: " + new String(mm.getData()));
                     } else if (mm.getType() == END_OF_TRACK) {
                         this.out.println("End of track.");
+                    } else if (mm.getType() == TIME_SIGNATURE) {
+                        this.out.println("Time signature: "+ new String(mm.getData()));
+                    } else if (mm.getType() == KEY_SIGNATURE) {
+                        this.out.println("Key signature: "+ new String(mm.getData()));
                     } else {
                         this.out.println("Unknown meta message: " + mm.getType());
                     }
@@ -195,6 +203,7 @@ public class MidiMusic {
 		return channelsCount;
 	}
 	
+	@Override
 	public void findNext() {
 		long delta = 0;
 		int changes = 0;
@@ -225,7 +234,7 @@ public class MidiMusic {
 									stop = true;
 									break;
 								}
-								channels[ch].activeNotes.put(ne.note, new Note(ne.note, ne.velocity, currentTick+delta));
+								channels[ch].activeNotes.put(ne.note, new MidiNote(ne.note, ne.velocity, currentTick+delta));
 							} else {
 								if (delta != 1 && channels[ch].activeNotes.containsKey(ne.note)) {
 									delta--;
@@ -262,7 +271,7 @@ public class MidiMusic {
 									stop = true;
 									break;
 								}
-								channels[ch].activeNotes.put(ne.note, new Note(ne.note, ne.velocity, currentTick+delta));
+								channels[ch].activeNotes.put(ne.note, new MidiNote(ne.note, ne.velocity, currentTick+delta));
 							} else {
 								if (delta != 1 && channels[ch].activeNotes.containsKey(ne.note)) {
 									delta--;
@@ -285,9 +294,9 @@ public class MidiMusic {
 				}
 
 				
-				for(Iterator<Entry<Integer, Note>> it = channels[ch].activeNotes.entrySet().iterator(); it.hasNext(); ) {
-					Entry<Integer, Note> noteEntry = it.next();
-					Note note = noteEntry.getValue();
+				for(Iterator<Entry<Integer, MidiNote>> it = channels[ch].activeNotes.entrySet().iterator(); it.hasNext(); ) {
+					Entry<Integer, MidiNote> noteEntry = it.next();
+					MidiNote note = noteEntry.getValue();
 					MidiProgram program = getProgram(channels[ch].currentProgram);
 					if (program.duration >= 0) {
 						if (note.startTick + program.duration < currentTick+delta) {
@@ -307,18 +316,19 @@ public class MidiMusic {
 	
 	private static final int duplicateMode = 0;
 	
+	@Override
 	public Note getCurrentNote(int channel) {
 		if (channel >= channelsCount) {
 			channel = channel%channelsCount;
 		}
 		int notes = 0;
-		Note maxNote = null;
-		for (Entry<Integer, Note> noteEntry : channels[channel].activeNotes.entrySet()) {
-			Note note = noteEntry.getValue();
+		MidiNote maxNote = null;
+		for (Entry<Integer, MidiNote> noteEntry : channels[channel].activeNotes.entrySet()) {
+			MidiNote note = noteEntry.getValue();
 			
 			switch(duplicateMode) {
 				case 0:
-					if (maxNote == null || ((maxNote.velocity == note.velocity && note.startTick == maxNote.startTick) && maxNote.note < note.note) || (note.startTick == maxNote.startTick && maxNote.velocity < note.velocity) || (maxNote.startTick < note.startTick)) {
+					if (maxNote == null || ((maxNote.velocity == note.velocity && note.startTick == maxNote.startTick) && maxNote.getNote() < note.getNote()) || (note.startTick == maxNote.startTick && maxNote.velocity < note.velocity) || (maxNote.startTick < note.startTick)) {
 						maxNote = note;
 					}
 					break;
@@ -330,7 +340,7 @@ public class MidiMusic {
 						if (note.startTick < maxNote.startTick) {
 							startTick = maxNote.startTick;
 						}
-						maxNote = new Note(note.note + maxNote.note, note.velocity + maxNote.velocity, startTick);
+						maxNote = new MidiNote(note.getNote() + maxNote.getNote(), note.velocity + maxNote.velocity, startTick);
 					}
 					notes++;
 					break;
@@ -340,7 +350,7 @@ public class MidiMusic {
 		switch(duplicateMode) {
 			case 1:
 				if (notes > 1) {
-					maxNote = new Note((double)maxNote.note / (double)notes, (double)maxNote.velocity / (double)notes, maxNote.startTick);
+					maxNote = new MidiNote(maxNote.getNote() / notes, maxNote.velocity / notes, maxNote.startTick);
 				}
 				break;
 		}
@@ -348,32 +358,44 @@ public class MidiMusic {
 		return maxNote;
 	}
 	
-	public void setSpeedMultiplier(float val) {
+	@Override
+	public void setSpeedMultiplier(double val) {
 		speedMultiplier = val;
 		tempo/=speedMultiplier;
 	}
 
+	@Override
 	public void setToneMultiplier(float val) {
 		toneMultiplier = val;
 	}
 
+	@Override
 	public boolean hasNext() {
 		return sequence.getTickLength() - (currentTick+1) >= 0;
 	}
 
+	@Override
 	public long getCurrentTick() {
 		return currentTick;
 	}
 
+	@Override
 	public double getDivision() {
 		return sequence.getResolution();
 	}
 
+	@Override
 	public double getTempo() {
-		return tempo;
+		return tempo/60000000d;
 	}
 
-	public double getToneMultiplier() {
+	@Override
+	public double getSpeedMultiplier() {
+		return speedMultiplier;
+	}
+
+	@Override
+	public float getToneMultiplier() {
 		return toneMultiplier;
 	}
 
@@ -384,6 +406,7 @@ public class MidiMusic {
 		return channels[channel].currentVolume;
 	}
 
+	@Override
 	public double getChannelPitch(int channel) {
 		if (channel >= channelsCount) {
 			channel = channel%channelsCount;
@@ -404,6 +427,7 @@ public class MidiMusic {
 		}
 	}
 	
+	@Override
 	public void setBlacklistedChannels(List<Integer> blacklist) {
 		
 		boolean[] blacklistedChannelsBool = new boolean[16];
@@ -417,10 +441,12 @@ public class MidiMusic {
 		this.blacklistedChannel = blacklistedChannelsBool;
 	}
 
+	@Override
 	public void setOutputChannelsCount(int i) {
 		this.channelsCount = i;
 	}
 
+	@Override
 	public void setDebugOutput(boolean debug) {
     	if (debug) {
     		this.out = System.out;

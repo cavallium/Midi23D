@@ -1,12 +1,12 @@
-package org.warp.midito3d.midi;
+package org.warp.midito3d.music.midi;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
-public class Channel {
+class Channel {
 	public final HashMap<Long, ArrayList<MidiMusicEvent>> events; //Tick, NoteEvent
-	public HashMap<Integer, Note> activeNotes; //Note, Note
+	public HashMap<Integer, MidiNote> activeNotes; //Note, Note
 	public double currentVolume;
 	public double currentPitch;
 	public int currentProgram;

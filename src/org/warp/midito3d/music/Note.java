@@ -1,7 +1,7 @@
-package org.warp.midito3d.midi;
+package org.warp.midito3d.music;
 
-public class Note {
-	public final double note;
+public abstract class Note {
+	protected final double note;
 	public final double velocity;
 	public final long startTick;
 	
@@ -10,4 +10,6 @@ public class Note {
 		this.velocity = velocity;
 		this.startTick = startTick;
 	}
+
+	public abstract double calculateFreq(double channelPitch);
 }

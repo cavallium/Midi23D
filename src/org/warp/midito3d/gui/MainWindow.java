@@ -3,41 +3,34 @@ package org.warp.midito3d.gui;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
-import java.awt.RenderingHints;
-import java.awt.Toolkit;
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
-
 import javax.imageio.ImageIO;
 import javax.sound.midi.InvalidMidiDataException;
-import javax.swing.ImageIcon;
+import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
+import org.warp.midito3d.FilenameUtils;
 import org.warp.midito3d.Midi23D;
-import org.warp.midito3d.gui.printers.Model3Axes;
 import org.warp.midito3d.gui.printers.PrinterModel;
 import org.warp.midito3d.gui.printers.PrinterModelArea;
+import org.warp.midito3d.music.Music;
+import org.warp.midito3d.music.midi.MidiParser;
+import org.warp.midito3d.music.mp3.Mp3Parser;
 import org.warp.midito3d.gui.ModernDialog.ModernExtensionFilter;
-import org.warp.midito3d.midi.MidiMusic;
-import org.warp.midito3d.midi.MidiMusicEvent;
-import org.warp.midito3d.midi.MidiParser;
 import org.warp.midito3d.printers.GCodeOutput;
 import org.warp.midito3d.printers.Printer;
-import org.warp.midito3d.printers.Printer3Axes;
+
+import javazoom.jl.decoder.BitstreamException;
+import javazoom.jl.decoder.DecoderException;
 
 
 public class MainWindow extends JFrame {
@@ -49,7 +42,7 @@ public class MainWindow extends JFrame {
 
 	public PrinterModel printerModel;
 	public PrinterModelArea printerModelArea;
-	public MidiMusic midi;
+	public Music music;
 	public JButton exportBtn;
 	
 	public MainWindow() {
@@ -163,7 +156,7 @@ public class MainWindow extends JFrame {
 			ModernDialog.runLater(()->{
 				ModernDialog diag = new ModernDialog();
 				diag.setTitle("Open Midi File");
-				diag.setExtensions(new ModernExtensionFilter("Midi files", "*.midi", "*.mid"), new ModernExtensionFilter("All files", "*.*"));
+				diag.setExtensions(new ModernExtensionFilter("Midi files", "*.midi", "*.mid"), /*new ModernExtensionFilter("Mp3 or WAV files", "*.mp3", "*.wav"),*/ new ModernExtensionFilter("All files", "*.*"));
 				File f = diag.show(this);
 				if (f != null && f.exists()) {
 					importMidi(f);
@@ -182,8 +175,23 @@ public class MainWindow extends JFrame {
 	
 	private synchronized void importMidi(File f) {
 		try {
-			MidiMusic mus = MidiParser.loadFrom(f.toString(), true);
-			this.midi = mus;
+			String ext = FilenameUtils.getExtension(f.toString());
+			Music mus = null;
+			if (ext.length() > 0) {
+				if (ext.equals("mid") || ext.equals("midi")) {
+					System.out.println("Importing midi file...");
+					mus = MidiParser.loadFrom(f.toString(), true);
+					System.out.println("Imported successfully.");
+				} else /*if (ext.equals("mp3"))*/ {
+					System.out.println("Importing mp3 file...");
+					mus = Mp3Parser.loadFrom(f.toString(), true);
+					System.out.println("Imported successfully.");
+				}
+			}
+			if (mus == null) {
+				throw new java.lang.UnsupportedOperationException();
+			}
+			this.music = mus;
 			Container parent = songPanel.getParent();
 			parent.remove(songPanel);
 			songPanel = new InputSongPanel(f, mus);
@@ -202,7 +210,7 @@ public class MainWindow extends JFrame {
 			exportBtn.setVisible(true);
 			this.validate();
 			this.repaint();
-		} catch (InvalidMidiDataException | IOException e) {
+		} catch (InvalidMidiDataException | IOException | UnsupportedAudioFileException | DecoderException | BitstreamException e) {
 			e.printStackTrace();
 		}
 	}
@@ -211,7 +219,7 @@ public class MainWindow extends JFrame {
 		ModernDialog.runLater(()->{
 			ModernDialog diag = new ModernDialog();
 			diag.setTitle("Save G-CODE File");
-			diag.setExtensions(new ModernExtensionFilter("G-CODE files", "*.gcode", "*.gco"), new ModernExtensionFilter("All files", "*.*"));
+			diag.setExtensions(new ModernExtensionFilter("G-CODE files", "*.gco", "*.gcode"), new ModernExtensionFilter("All files", "*.*"));
 			File f = diag.showSaveDialog(this);
 			if (f != null) {
 				exportMidi(f);
@@ -221,7 +229,7 @@ public class MainWindow extends JFrame {
 	
 	private synchronized void exportMidi(File output) {
 		Printer p = printerModel.createPrinterObject(printerModelArea);
-		Midi23D midi23D = new Midi23D(p, midi, new GCodeOutput(output), false);
+		Midi23D midi23D = new Midi23D(p, music, new GCodeOutput(output), false);
 		try {
 			midi23D.run();
 		} catch (IOException e) {

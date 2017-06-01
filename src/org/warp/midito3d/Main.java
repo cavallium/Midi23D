@@ -1,8 +1,6 @@
 package org.warp.midito3d;
 
 import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
-
 import org.warp.midito3d.gui.MainWindow;
 
 public class Main {
