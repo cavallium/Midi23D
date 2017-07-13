@@ -13,6 +13,12 @@ import javafx.stage.FileChooser.ExtensionFilter;
 
 import com.sun.javafx.application.PlatformImpl;
 
+/**
+ * Modern dialog
+ * @version 1.0.0
+ * @author Andrea Cavalli
+ *
+ */
 public class ModernDialog {
 	private JFileChooser oldChooser;
 	private FileChooser newChooser;

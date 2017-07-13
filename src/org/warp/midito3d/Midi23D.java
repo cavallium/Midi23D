@@ -43,7 +43,6 @@ public final class Midi23D {
 
 			double[] frequency = new double[motorsCount];
 			double[] speed = new double[motorsCount];
-			double time = (((currentTick-previousTick)/music.getDivision()) * music.getTempo());
 			boolean didSomething = false;
 			String frequenciesString = "";
 			
@@ -64,9 +63,9 @@ public final class Midi23D {
 			
 			if (didSomething) {
 				
-				printer.move(output, time, speed);
+				printer.move(output, (((currentTick-previousTick)/music.getDivision()) * music.getTempo()), speed);
 			} else {
-				printer.wait(output, time);
+				printer.wait(output, (((currentTick-previousTick)/music.getDivision()) / music.getTempo()));
 			}
 		}
 		
