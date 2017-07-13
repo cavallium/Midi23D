@@ -16,7 +16,7 @@ You must use this formula: https://warp.ovh/pages/immagini/delta.svg
 In this way you can control simultaneously one note for each motor.
 
 # Usage
-First of all, download [***Midi23D.jar***](http://gdb.altervista.org/downloads/Midi23D.jar)
+First of all, download ***Midi23D*** ([***Cross-platform***](http://gdb.altervista.org/downloads/Midi23D.jar)) ([***Windows***](http://gdb.altervista.org/downloads/Midi23D.exe))
 
 Run the program by executing this code into your terminal:
 **java -jar Midi23D.jar <input-file.mid> <output-file.gcode> <speed-multiplier> <tone-multiplier> <motor-test>**
