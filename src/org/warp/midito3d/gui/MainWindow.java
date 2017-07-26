@@ -7,6 +7,7 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.Insets;
 import java.io.File;
 import java.io.IOException;
@@ -49,7 +50,7 @@ public class MainWindow extends JFrame {
 		INSTANCE = this;
 		
 		try {
-			this.setIconImage(ImageIO.read(new File("res/3DPrinter128.png")));
+			this.setIconImage(ImageIO.read(this.getClass().getClassLoader().getResource("3DPrinter128.png")));
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}

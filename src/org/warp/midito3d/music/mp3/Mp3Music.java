@@ -15,7 +15,7 @@ import javazoom.jl.decoder.Bitstream;
 
 class Mp3Music implements Music {
 
-	private double[] freqs;
+	private double[][] freqs;
 	
 	private double tempo = 500000;
 	private double speedMultiplier = 1.0d;
@@ -23,7 +23,7 @@ class Mp3Music implements Music {
 
 	private long currentTick = -1;
 	
-	private int channelsCount = 16;
+	private int channelsCount = 4;
 
 	private PrintStream out;
 	private PrintStream err;
@@ -33,9 +33,9 @@ class Mp3Music implements Music {
 
 	private float samplesPerSecond;
 
-	private double currentNote;
+	private double currentNotes[];
 	
-	Mp3Music(double[] freqs, float samplesPerSecond, int channels, boolean debug) {
+	Mp3Music(double[][] freqs, float samplesPerSecond, int channels, boolean debug) {
     	setDebugOutput(debug);
 		this.freqs = freqs;
 		this.channelsCount = channels;
@@ -70,21 +70,30 @@ class Mp3Music implements Music {
 		if (errored) {
 			return false;
 		}
-		return currentTick + 1 < freqs.length;
+		return currentTick + 1 < freqs[0].length;
 	}
 
 	@Override
 	public void findNext() {
 		int delta = 1;
-		
+		boolean allEquals = false;
 		do {
-			this.currentNote = this.freqs[(int) currentTick+delta];
+			currentNotes = new double[channelsCount];
+			for (int i = 0; i < channelsCount; i++) {
+				currentNotes[i] = this.freqs[i][(int) currentTick+delta];
+			}
 			delta++;
-			if (currentTick+delta >= this.freqs.length) {
+			if (currentTick+delta >= this.freqs[0].length) {
 				break;
 			}
-		} while(currentNote == this.freqs[(int) currentTick+delta]);
-		
+			allEquals = true;
+			for (int i = 0; i < this.channelsCount; i++) {
+				if (currentNotes[i] != this.freqs[i][(int) currentTick+delta]) {
+					allEquals = false;
+					break;
+				}
+			}
+		} while(allEquals);
 		currentTick += delta;
 	}
 
@@ -105,7 +114,7 @@ class Mp3Music implements Music {
 
 	@Override
 	public Note getCurrentNote(int channel) {
-		return new Mp3Note(currentNote, 69d, currentTick);
+		return new Mp3Note(currentNotes[channel], 69d, currentTick);
 	}
 
 	@Override
