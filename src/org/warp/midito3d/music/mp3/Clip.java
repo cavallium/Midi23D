@@ -22,7 +22,7 @@ public class Clip {
 
     public Clip(File file) throws UnsupportedAudioFileException, IOException {
         int n;
-        VorbisWindowFunction windowFunc = new VorbisWindowFunction(this.frameSize);
+        WindowFunction windowFunc = new NullWindowFunction();//new VorbisWindowFunction(this.frameSize);
         AudioFormat desiredFormat = AUDIO_FORMAT;
         BufferedInputStream in = new BufferedInputStream(AudioSystem.getAudioInputStream(desiredFormat, AudioSystem.getAudioInputStream(file)));
         byte[] buf = new byte[this.frameSize * 2];
@@ -50,6 +50,10 @@ public class Clip {
 
     public int getFrameFreqSamples() {
         return this.frameSize;
+    }
+
+    public double getSpectralScale() {
+        return this.spectralScale;
     }
 
     public int getFrameCount() {

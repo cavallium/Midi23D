@@ -13,10 +13,12 @@ public interface Music {
 	void findNext();
 
 	long getCurrentTick();
+	
+	long getLength();
 
 	double getDivision();
 
-	double getTempo();
+	double getCurrentTempo();
 
 	Note getCurrentNote(int channel);
 

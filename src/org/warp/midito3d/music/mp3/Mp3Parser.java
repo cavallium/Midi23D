@@ -29,125 +29,129 @@ import javazoom.jl.decoder.SampleBuffer;
 
 public class Mp3Parser {
 
-	private final static int actuatorsCount = 1;
+	private final static int actuatorsCount = 4;
 	
 	public static Mp3Music loadFrom(String file, boolean debug) throws UnsupportedAudioFileException, IOException, DecoderException, BitstreamException {
 		File filename = new File(file);
-		AudioInputStream in = AudioSystem.getAudioInputStream(filename);
-		AudioInputStream din = null;
-		AudioFormat baseFormat = in.getFormat();
-		double sampleRate = 44100;
+		Clip c = new Clip(filename);
+		final int length = c.getFrameCount();
+		final int freqSamples = c.getFrameFreqSamples();
+	    
+	    double durationInSeconds = c.getAudio().getFrameLength() / c.getAudio().getFormat().getFrameRate()/c.getAudio().getFormat().getFrameSize();  
 		
-		AudioFormat decodedFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 
-													(int)sampleRate,
-		                                            16,
-		                                            1,
-		                                            2,
-		                                            (int)sampleRate,
-		                                            true);
-		din = AudioSystem.getAudioInputStream(decodedFormat, in);
-		
-		ReadableByteChannel inCh = Channels.newChannel(din);
-	    ByteBuffer inBuf=ByteBuffer.allocate((int) sampleRate);
-	    final double factor=2.0/(1<<16);
-	    double[] input = new double[0];
-	    while(inCh.read(inBuf) != -1) {
-	        inBuf.flip();
-	        double[] convertedData=new double[inBuf.remaining()/2];
-	        DoubleBuffer outBuf=DoubleBuffer.wrap(convertedData);
-	        while(inBuf.remaining()>=2) {
-	            outBuf.put(inBuf.getShort()*factor);
-	        }
-	        assert !outBuf.hasRemaining();
-	        inBuf.compact();
-	        
-	        input = concatArrays(input, convertedData);
+	    double[][] freqs = new double[actuatorsCount][length];
+
+	    double max_frequency_power = 0;
+	    double max_frequency_index = 0;
+	    for (int frameIndex = 0; frameIndex < length; frameIndex++) {
+			Frame f = c.getFrame(frameIndex);
+			for (int frequencyIndex = 0; frequencyIndex < freqSamples; frequencyIndex++) {
+				double frequencyPower = Math.abs(f.getReal(frequencyIndex));
+				if (frequencyPower > max_frequency_power) {
+					max_frequency_power = frequencyPower;
+				}
+				if (frequencyIndex > max_frequency_index) {
+					max_frequency_index = frequencyIndex;
+				}
+			}
+	    }
+	    System.out.println("MAX Frequency: " + ((double)max_frequency_index * (double)c.getSpectralScale() / (double)freqSamples));
+	    System.out.println("MAX Frequency Power: " + max_frequency_power);
+	    final double thresold_frequency_power = max_frequency_power * 0.6d;
+	    
+	    for (int frameIndex = 0; frameIndex < length; frameIndex++) {
+			//Get max frequencies
+			double[] max_freqs_power = new double[actuatorsCount];
+			double[] max_freqs_index = new double[actuatorsCount];
+			for (int i = 0; i < actuatorsCount; i++) {
+				max_freqs_power[i] = 0;
+				max_freqs_index[i] = 0;
+			}
+			Frame f = c.getFrame(frameIndex);
+			/*
+			for (int frequencyIndex = 0; frequencyIndex < freqSamples; frequencyIndex++) {
+				for (int k = 0; k < actuatorsCount; k++) {
+					double frequencyPower = Math.abs(f.getReal(frequencyIndex));
+					if (frequencyPower > thresold_frequency_power) {
+						if (frequencyPower > max_freqs_power[k]) {
+							boolean done = false;
+							for (int l = 0; l < actuatorsCount; l++) {
+								if ((double)Math.abs(frequencyIndex - max_freqs[l]) * (double)c.getSpectralScale() / ((double)freqSamples) <= 10d) { // se le note sono simili (+-10Hz) fai la media e trattale come una sola
+									System.out.println("Joining frequencies " + ((double)frequencyIndex * (double)c.getSpectralScale() / ((double)freqSamples)) + "Hz and " + ((double)max_freqs[l] * (double)c.getSpectralScale() / ((double)freqSamples)) + "Hz");
+									if (frequencyIndex > max_freqs[l]) {
+										max_freqs[l] = frequencyIndex;
+										max_freqs_power[l] = frequencyPower > max_freqs_power[l] ? frequencyPower : max_freqs_power[l];
+									}
+									
+									//alternativa:
+									//max_freqs[l] = (frequencyIndex * frequencyPower + max_freqs[l] * max_freqs_power[l]) / (frequencyPower + max_freqs_power[l]); // media tra le due note simili
+									//max_freqs_power[l] = (frequencyPower + max_freqs_power[l]) / 2; // media tra le due note simili
+									
+									done = true;
+									break;
+								}
+							}
+							if (!done) {
+								for (int j = actuatorsCount - 2; j >= k; j--) {
+									max_freqs_power[j] = max_freqs_power[j+1];
+									max_freqs[j] = max_freqs[j+1];
+								}
+								max_freqs_power[k] = frequencyPower;
+								max_freqs[k] = ((double)frequencyIndex) * c.getSpectralScale() / ((double)freqSamples);
+								break;
+							}
+						}
+					}
+				}
+			}
+			*/
+			for (int frequencyIndex = 0; frequencyIndex < freqSamples; frequencyIndex++) {
+				for (int k = 0; k < actuatorsCount; k++) {
+					double frequencyPower = Math.abs(f.getReal(frequencyIndex));
+					if (frequencyPower > thresold_frequency_power) {
+						if (frequencyIndex > max_freqs_index[k]) {
+							boolean done = false;
+							for (int l = 0; l < actuatorsCount; l++) {
+								if ((double)Math.abs(frequencyIndex - max_freqs_index[l]) * (double)c.getSpectralScale() / ((double)freqSamples) <= 10d) { // se le note sono simili (+-10Hz) fai la media e trattale come una sola
+									System.out.println("Joining frequencies " + ((double)frequencyIndex * (double)c.getSpectralScale() / ((double)freqSamples)) + "Hz and " + ((double)max_freqs_index[l] * (double)c.getSpectralScale() / ((double)freqSamples)) + "Hz");
+									if (frequencyIndex > max_freqs_index[l]) {
+										max_freqs_index[l] = frequencyIndex;
+										max_freqs_power[l] = frequencyPower > max_freqs_power[l] ? frequencyPower : max_freqs_power[l];
+									}
+									done = true;
+									break;
+								}
+							}
+							if (!done) {
+								for (int j = actuatorsCount - 2; j >= k; j--) {
+									max_freqs_power[j] = max_freqs_power[j+1];
+									max_freqs_index[j] = max_freqs_index[j+1];
+								}
+								max_freqs_power[k] = frequencyPower;
+								max_freqs_index[k] = frequencyIndex;
+								break;
+							}
+						}
+					}
+				}
+			}
+			for (int i = 0; i < actuatorsCount; i++) {
+				freqs[i][frameIndex] = (double)max_freqs_index[i] * (double)c.getSpectralScale() / (double)freqSamples;
+			}
 	    }
 
-		/*System.out.println(baseFormat.getEncoding().toString());
-		System.out.println(baseFormat.getSampleRate());
-		System.out.println(baseFormat.getSampleSizeInBits());
-		System.out.println(baseFormat.getChannels());
-		System.out.println(baseFormat.getFrameSize());
-		System.out.println(baseFormat.getFrameRate());
-		System.out.println(baseFormat.isBigEndian());
-		AudioFormat decodedFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 
-													(int)sampleRate,
-									                8,
-									                1,
-									                1,
-									                (int)sampleRate,
-									                true);
-		din = AudioSystem.getAudioInputStream(decodedFormat, in);
-		
-		ReadableByteChannel inCh = Channels.newChannel(din);
-		ByteBuffer inBuf=ByteBuffer.allocate(256);
-		double[] input = new double[0];
-	    final double factor=1.0/(1<<8);
-		while(inCh.read(inBuf) != -1) {
-			inBuf.flip();
-			
-			double[] convertedData=new double[inBuf.remaining()/1];
-			DoubleBuffer outBuf=DoubleBuffer.wrap(convertedData);
-			while(inBuf.remaining()>=1) {
-				outBuf.put(((double)inBuf.get())*factor);
-			}
-			assert !outBuf.hasRemaining();
-			inBuf.compact();
-			
-			input = concatArrays(input, convertedData);
-		}*/
-	    
-	    
-	    double durationInSeconds = (input.length+0.0) / sampleRate;  
-		
-	    /*
-		double[] input = new double[din.available()];
-		
-		double data;
-		int i = 0;
-		while((data = din.read()) != -1) {
-			input[i] = data;
-			i++;
-		}
-		*/
-		
-		/*
-		Bitstream bitStream = new Bitstream(new FileInputStream(file));
-		Header frm;
-		double[] input = new double[0];
-	    System.out.println();
-		while((frm = bitStream.readFrame()) != null){
-		    Decoder decoder = new Decoder();
-		    short[] samples = ((SampleBuffer) decoder.decodeFrame(frm, bitStream)).getBuffer(); //returns the next 2304 samples
-		    double[] smpls = new double[samples.length];
-		    bitStream.closeFrame();
-		    
-		    for (int i = 0; i < samples.length; i++) {
-		    	smpls[i] = samples[i];
-		    }
-		    input = concatArrays(input, smpls);
-		}
-		*/
-	    
-	    sampleRate*=2d;
-	    arrToImg(input, false, 0.1d, 16, "raw");
-	    double[][] freqs = convertToFreq(input, 2048*2, actuatorsCount);
 	    freqsArrToImg(freqs, false, 2d, 64, "freqs");
-	    float samplesPerSecond = (float) (((double)freqs.length)/durationInSeconds);
+	    float samplesPerSecond = (float) (((double)freqs[0].length)/durationInSeconds);
 	    System.out.println("Song duration: "+durationInSeconds+"s; ");
 
 	    debugMusic(freqs, durationInSeconds);
 	    
-		return new Mp3Music(freqs, samplesPerSecond, actuatorsCount, debug);
-		
+		return new Mp3Music(freqs, samplesPerSecond, debug);
 	}
 	
 	private static void debugMusic(final double[][] freqs, final double songDuration) {
-		System.out.println(songDuration*1000d/freqs[0].length);
-		System.out.println(songDuration);
-		System.out.println(freqs[0].length);
-		for (int chan = 0; chan < actuatorsCount; chan++) {
+		System.out.println("Debugging music");
+		for (int chan = 0; chan < 1; chan++) {
 			final int chanF = chan;
 			new Thread(() -> {
 				try {

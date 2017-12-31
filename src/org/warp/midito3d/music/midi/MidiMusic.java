@@ -25,10 +25,12 @@ import org.warp.midito3d.music.Note;
 class MidiMusic implements Music {
 	
 	private final Sequence sequence;
-	private double tempo = 500000;
+	private double currentTempo = 500000;
+	private double nextTempo = 500000;
 	private double speedMultiplier = 1.0d;
 	private float toneMultiplier = 1.0f;
 	private Channel[] channels;
+	private Channel systemChannel;
 	private boolean[] blacklistedChannel = new boolean[16];
 
 	private long currentTick = -1;
@@ -60,8 +62,8 @@ class MidiMusic implements Music {
 	
 	@Override
 	public void reanalyze() {
+		systemChannel = new Channel();
 		channels = new Channel[channelsCount];
-		
 		for (int ch = 0; ch < channelsCount; ch++) {
 			channels[ch] = new Channel();
 		}
@@ -134,11 +136,19 @@ class MidiMusic implements Music {
                         }
                     }
                 } else if (message instanceof MetaMessage) {
+                	ArrayList<MidiMusicEvent> al;
+                	if (!systemChannel.events.containsKey(event.getTick())) {
+                		al = new ArrayList<>();
+                		systemChannel.events.put(event.getTick(), al);
+                	} else {
+                		al = systemChannel.events.get(event.getTick());
+                	}
+                	
                 	MetaMessage mm = (MetaMessage) event.getMessage();
                 	if (mm.getType() == SET_TEMPO) {
                     	byte[] data = mm.getData();
                     	this.out.println("Tempo change: "+ ((data[0] & 0xff) << 16 | (data[1] & 0xff) << 8 | (data[2] & 0xff)));
-                    	tempo = ((data[0] & 0xff) << 16 | (data[1] & 0xff) << 8 | (data[2] & 0xff))/speedMultiplier;
+                    	al.add(new TempoEvent(((data[0] & 0xff) << 16 | (data[1] & 0xff) << 8 | (data[2] & 0xff))/speedMultiplier));
                     } else if (mm.getType() == TEXT) {
                         this.out.println("Title: " + new String(mm.getData()));
                     } else if (mm.getType() == TRACK_NAME) {
@@ -208,12 +218,13 @@ class MidiMusic implements Music {
 		long delta = 0;
 		int changes = 0;
 		boolean stop = false;
+		this.currentTempo = this.nextTempo;
 		while(!stop && changes == 0 && sequence.getTickLength() - (currentTick+delta+1) >= 0) {
 			changes = 0;
 			delta++;
-			for (int ch = 0; ch < channelsCount; ch++) {
-				ArrayList<MidiMusicEvent> events = channels[ch].events.get(currentTick+delta);
-				
+			for (int ch = -1; ch < channelsCount; ch++) {
+				Channel currentChannel = (ch == -1) ? systemChannel : channels[ch];
+				ArrayList<MidiMusicEvent> events = currentChannel.events.get(currentTick+delta);
 				if (events == null) {
 					
 				} else {
@@ -229,29 +240,36 @@ class MidiMusic implements Music {
 //								}
 //							}
 							if (ne.state) {
-								if (delta != 1 && !channels[ch].activeNotes.containsKey(ne.note)) {
+								if (delta != 1 && !currentChannel.activeNotes.containsKey(ne.note)) {
 									delta--;
 									stop = true;
 									break;
 								}
-								channels[ch].activeNotes.put(ne.note, new MidiNote(ne.note, ne.velocity, currentTick+delta));
+								currentChannel.activeNotes.put(ne.note, new MidiNote(ne.note, ne.velocity, currentTick+delta));
 							} else {
-								if (delta != 1 && channels[ch].activeNotes.containsKey(ne.note)) {
+								if (delta != 1 && currentChannel.activeNotes.containsKey(ne.note)) {
 									delta--;
 									stop = true;
 									break;
 								}
-								channels[ch].activeNotes.remove(ne.note);
+								currentChannel.activeNotes.remove(ne.note);
 							}
 						} else if (e instanceof MainVolumeEvent) {
 							MainVolumeEvent mve = (MainVolumeEvent) e;
-							channels[ch].currentVolume = mve.volume;
+							currentChannel.currentVolume = mve.volume;
 						} else if (e instanceof PitchEvent) {
 							PitchEvent pe = (PitchEvent) e;
-							channels[ch].currentPitch = pe.pitch;
+							currentChannel.currentPitch = pe.pitch;
 						} else if (e instanceof ProgramEvent) {
 							ProgramEvent pe = (ProgramEvent) e;
-							channels[ch].currentProgram = pe.program;
+							currentChannel.currentProgram = pe.program;
+						} else if (e instanceof TempoEvent) {
+							if (delta != 1) {
+								delta--;
+								stop = true;
+								break;
+							}
+							this.nextTempo = ((TempoEvent) e).tempo;
 						}
 					}
 					for (MidiMusicEvent e : events) {
@@ -266,38 +284,38 @@ class MidiMusic implements Music {
 //								}
 //							}
 							if (ne.state) {
-								if (delta != 1 && !channels[ch].activeNotes.containsKey(ne.note)) {
+								if (delta != 1 && !currentChannel.activeNotes.containsKey(ne.note)) {
 									delta--;
 									stop = true;
 									break;
 								}
-								channels[ch].activeNotes.put(ne.note, new MidiNote(ne.note, ne.velocity, currentTick+delta));
+								currentChannel.activeNotes.put(ne.note, new MidiNote(ne.note, ne.velocity, currentTick+delta));
 							} else {
-								if (delta != 1 && channels[ch].activeNotes.containsKey(ne.note)) {
+								if (delta != 1 && currentChannel.activeNotes.containsKey(ne.note)) {
 									delta--;
 									stop = true;
 									break;
 								}
-								channels[ch].activeNotes.remove(ne.note);
+								currentChannel.activeNotes.remove(ne.note);
 							}
 						} else if (e instanceof MainVolumeEvent) {
 							MainVolumeEvent mve = (MainVolumeEvent) e;
-							channels[ch].currentVolume = mve.volume;
+							currentChannel.currentVolume = mve.volume;
 						} else if (e instanceof PitchEvent) {
 							PitchEvent pe = (PitchEvent) e;
-							channels[ch].currentPitch = pe.pitch;
+							currentChannel.currentPitch = pe.pitch;
 						} else if (e instanceof ProgramEvent) {
 							ProgramEvent pe = (ProgramEvent) e;
-							channels[ch].currentProgram = pe.program;
+							currentChannel.currentProgram = pe.program;
 						}
 					}
 				}
 
 				
-				for(Iterator<Entry<Integer, MidiNote>> it = channels[ch].activeNotes.entrySet().iterator(); it.hasNext(); ) {
+				for(Iterator<Entry<Integer, MidiNote>> it = currentChannel.activeNotes.entrySet().iterator(); it.hasNext(); ) {
 					Entry<Integer, MidiNote> noteEntry = it.next();
 					MidiNote note = noteEntry.getValue();
-					MidiProgram program = getProgram(channels[ch].currentProgram);
+					MidiProgram program = getProgram(currentChannel.currentProgram);
 					if (program.duration >= 0) {
 						if (note.startTick + program.duration < currentTick+delta) {
 							if (delta != 1) {
@@ -361,7 +379,7 @@ class MidiMusic implements Music {
 	@Override
 	public void setSpeedMultiplier(double val) {
 		speedMultiplier = val;
-		tempo/=speedMultiplier;
+		currentTempo/=speedMultiplier;
 	}
 
 	@Override
@@ -385,8 +403,8 @@ class MidiMusic implements Music {
 	}
 
 	@Override
-	public double getTempo() {
-		return tempo/60000000d;
+	public double getCurrentTempo() {
+		return currentTempo/60000000d;
 	}
 
 	@Override
@@ -458,5 +476,10 @@ class MidiMusic implements Music {
 				}
 			});
     	}
+	}
+
+	@Override
+	public long getLength() {
+		return sequence.getTickLength();
 	}
 }

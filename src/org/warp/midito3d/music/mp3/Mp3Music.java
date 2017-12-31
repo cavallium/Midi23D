@@ -13,7 +13,7 @@ import org.warp.midito3d.music.Note;
 
 import javazoom.jl.decoder.Bitstream;
 
-class Mp3Music implements Music {
+public class Mp3Music implements Music {
 
 	private double[][] freqs;
 	
@@ -28,18 +28,17 @@ class Mp3Music implements Music {
 	private PrintStream out;
 	private PrintStream err;
 
-	private final long minimumNoteDuration = 50;
 	private boolean errored = false;
 
 	private float samplesPerSecond;
 
 	private double currentNotes[];
 	
-	Mp3Music(double[][] freqs, float samplesPerSecond, int channels, boolean debug) {
+	Mp3Music(double[][] freqs, float samplesPerSecond, boolean debug) {
     	setDebugOutput(debug);
 		this.freqs = freqs;
-		this.channelsCount = channels;
-		this.samplesPerSecond = 52f/12f;
+		this.channelsCount = freqs.length;
+		this.samplesPerSecond = samplesPerSecond; //52f/12f;
 	}
 
 	@Override
@@ -108,8 +107,8 @@ class Mp3Music implements Music {
 	}
 
 	@Override
-	public double getTempo() {
-		return 12.69d/299d;//15d/856d;
+	public double getCurrentTempo() {
+		return 1;//0.00037409711d;//12.69d/299d;//15d/856d;
 	}
 
 	@Override
@@ -166,6 +165,15 @@ class Mp3Music implements Music {
 			});
     		this.err = this.out;
     	}
+	}
+
+	@Override
+	public long getLength() {
+		if (this.freqs.length > 0) {
+			return this.freqs[0].length;
+		} else {
+			return 0;
+		}
 	}
 
 }
