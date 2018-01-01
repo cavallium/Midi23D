@@ -14,9 +14,7 @@ public class MidiParser {
 	
 	public static MidiMusic loadFrom(String string, boolean debug) throws InvalidMidiDataException, IOException {
 		Sequence sequence = MidiSystem.getSequence(new File(string));
-		
 		MidiMusic m = new MidiMusic(sequence, debug);
-		
 		return m;
 	}
 	

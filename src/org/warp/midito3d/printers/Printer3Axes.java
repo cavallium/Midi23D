@@ -50,7 +50,7 @@ public class Printer3Axes implements Printer {
 			}
 		}
 		
-		po.writeLine(String.format(Locale.US, "G01 X%.10f Y%.10f Z%.10f E0 F%.10f", motorsPosition[0], motorsPosition[1], motorsPosition[2], speedPart));
+		po.writeLine(String.format(Locale.US, "G00 X%.10f Y%.10f Z%.10f E0 F%.10f", motorsPosition[0], motorsPosition[1], motorsPosition[2], speedPart));
 	}
 
 	@Override

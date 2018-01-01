@@ -8,18 +8,19 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 
+import org.warp.midito3d.music.DoneListener;
 import org.warp.midito3d.music.Music;
 import org.warp.midito3d.music.Note;
-import org.warp.midito3d.music.mp3.Mp3Music;
 import org.warp.midito3d.printers.GCodeOutput;
 import org.warp.midito3d.printers.Printer;
 
-public final class Midi23D {
+public final class Midi23D implements DoneListener {
 
 	public final Printer printer;
 	public final Music music;
 	public final GCodeOutput output;
 	public final boolean motorTest;
+	private int motorsCount;
 	
 	public Midi23D(Printer printer, Music music, GCodeOutput output, boolean motorTest) {
 		this.printer = printer;
@@ -30,80 +31,90 @@ public final class Midi23D {
 	
 	public void run() throws IOException {
 		
-		final int motorsCount = printer.getMotorsCount();
+		this.motorsCount = printer.getMotorsCount();
 		
 		output.openAndLock();
 		
 		music.setOutputChannelsCount(motorTest?1:motorsCount);
-		music.reanalyze();
-
-		long firstTick;
-		long lastTick = -1;
-		
-		printer.initialize(output);
-		
-		final double[][] debugFreqs = new double[printer.getMotorsCount()][(int) music.getLength()];
-		double songDuration = 0;
-		
-		while(music.hasNext()) {
-			music.findNext();
-			firstTick = lastTick;
-			lastTick = music.getCurrentTick();
-
-			double[] frequency = new double[motorsCount];
-			double[] speed = new double[motorsCount];
-			boolean didSomething = false;
-			String frequenciesString = "";
-			
-			for (int channel = 0; channel < motorsCount; channel++) {
-				Note note = music.getCurrentNote(channel);
-				
-				if (note != null) {
-					frequency[channel] = note.calculateFreq(music.getChannelPitch(channel)) * music.getToneMultiplier();
-					for (int ii = (int) firstTick + 1; ii <= lastTick; ii++) {
-						debugFreqs[channel][ii] = frequency[channel];
-					}
-					speed[channel] = frequency[channel] * note.velocity / (double)printer.getMotor(channel).getPPI();
-					
-					if (didSomething == false) {
-						didSomething = speed[channel] > 0d;
-					}
-				}
-				
-				frequenciesString += String.format(Locale.US, ", %.3fHz", frequency[channel]);
-			}
-			
-			double deltaTime = (((lastTick-firstTick)/music.getDivision()) * music.getCurrentTempo())*60d;
-			songDuration+=deltaTime;
-			System.out.println(String.format("Chord: [%s] for %d deltas (%.2f seconds)", frequenciesString.substring(2), lastTick-firstTick, deltaTime));
-			
-			
-			if (didSomething) {
-				printer.move(output, deltaTime/60d, speed);
-			} else {
-				for (int m = 0; m < motorsCount; m++) {
-					speed[m] = 13 / (double)printer.getMotor(m).getPPI();
-				}
-				printer.move(output, deltaTime/60d, speed);
-				/*
-				if (music instanceof Mp3Music) {
-					printer.wait(output, deltaTime);
-				} else {
-					printer.wait(output, deltaTime);
-				}*/
-				
-			}
-		}
-		
-		printer.stop(output);
-		
-		output.close();
-		
-		System.out.println("Done.");
-		
-//		debugMusic(debugFreqs, songDuration, printer.getMotorsCount());
+		music.reanalyze(this);
 	}
 	
+	@Override
+	public void done() {
+		try {
+			long firstTick;
+			long lastTick = -1;
+			printer.initialize(output);
+			
+			final double[][] debugFreqs = new double[printer.getMotorsCount()][(int) music.getLength()];
+			double songDuration = 0;
+			
+			while(music.hasNext()) {
+				music.findNext();
+				firstTick = lastTick;
+				lastTick = music.getCurrentTick();
+
+				double[] frequency = new double[motorsCount];
+				double[] speed = new double[motorsCount];
+				boolean didSomething = false;
+				String frequenciesString = "";
+				
+				for (int channel = 0; channel < motorsCount; channel++) {
+					Note note = music.getCurrentNote(channel);
+					
+					if (note != null) {
+						frequency[channel] = note.getFrequency() * music.getToneMultiplier();
+						for (int ii = (int) firstTick + 1; ii <= lastTick; ii++) {
+							debugFreqs[channel][ii] = frequency[channel];
+						}
+						speed[channel] = frequency[channel] * note.velocity / (double)printer.getMotor(channel).getPPI();
+						
+						if (didSomething == false) {
+							didSomething = speed[channel] > 0d;
+						}
+					}
+					
+					frequenciesString += String.format(Locale.US, ", %.3fHz", frequency[channel]);
+				}
+				
+				double deltaTime = (((lastTick-firstTick)/music.getDivision()) * music.getCurrentTempo());
+				songDuration+=deltaTime;
+				System.out.println(String.format("Chord: [%s] for %d deltas (%.2f seconds)", frequenciesString.substring(2), lastTick-firstTick, deltaTime));
+				
+				
+				if (didSomething) {
+					printer.move(output, deltaTime/60d, speed);
+				} else {
+					for (int m = 0; m < motorsCount; m++) {
+						speed[m] = 13 / (double)printer.getMotor(m).getPPI();
+					}
+					printer.move(output, deltaTime/60d, speed);
+					/*
+					if (music instanceof Mp3Music) {
+						printer.wait(output, deltaTime);
+					} else {
+						printer.wait(output, deltaTime);
+					}*/
+					
+				}
+			}
+			
+			System.out.println("Song duration: "+songDuration + " seconds.");
+			
+			printer.stop(output);
+			
+			output.close();
+			
+			System.out.println("Done.");
+
+//			debugMusic(debugFreqs, songDuration, printer.getMotorsCount());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	@SuppressWarnings("unused")
 	private static void debugMusic(final double[][] freqs, final double songDuration, final double actuatorsCount) {
 		System.out.println("Debugging music. Duration=" + String.format("%.2f", songDuration) + " seconds. " + actuatorsCount + " channels.");
 		for (int chan = 0; chan < 1; chan++) {
@@ -125,6 +136,7 @@ public final class Midi23D {
 	}
 	
 	private static float SAMPLE_RATE = 8000f;
+	@SuppressWarnings("unused")
 	private static void writeTone(int hz, int msecs) throws LineUnavailableException {
 		writeTone(hz, msecs, 0.5d);
     }

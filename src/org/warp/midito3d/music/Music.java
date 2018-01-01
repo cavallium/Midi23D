@@ -6,7 +6,7 @@ public interface Music {
 
 	void setOutputChannelsCount(int i);
 
-	void reanalyze();
+	void reanalyze(DoneListener l);
 
 	boolean hasNext();
 

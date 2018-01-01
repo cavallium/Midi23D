@@ -11,5 +11,5 @@ public abstract class Note {
 		this.startTick = startTick;
 	}
 
-	public abstract double calculateFreq(double channelPitch);
+	public abstract double getFrequency();
 }
