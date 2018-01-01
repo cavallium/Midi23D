@@ -344,8 +344,8 @@ class MidiMusic implements Music, ParserListener, ParserProgressListener {
 //				}
 //				currentChannel++;
 //			}
-			frequencySequences.get(currentChannel).putEvent(currentTime, midiNoteToHertz(note.getValue()));
 			if (note.getDuration() > 0) {
+				frequencySequences.get(currentChannel).putEvent(currentTime, midiNoteToHertz(note.getValue()));
 				frequencySequences.get(currentChannel).putEvent(currentTime+note.getDuration(), 0.0d);
 			}
 		}
