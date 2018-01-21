@@ -59,7 +59,7 @@ public class Printer4Axes implements Printer {
 
 	@Override
 	public void goTo(GCodeOutput po, double speed, double... position) throws IOException {
-		double speedPart = Math.sqrt(Math.pow(speed*motors[0].getPPI(), 2d)+Math.pow(speed*motors[1].getPPI(), 2d)+Math.pow(speed*motors[2].getPPI(), 2d));
+		double speedPart = Math.sqrt(Math.pow(speed*motors[0].getStepsPerMillimeter(), 2d)+Math.pow(speed*motors[1].getStepsPerMillimeter(), 2d)+Math.pow(speed*motors[2].getStepsPerMillimeter(), 2d));
 		motorsPosition = position;
 		po.writeLine(String.format(Locale.US, "G00 X%.10f Y%.10f Z%.10f E%.10f F%.10f", position[0], position[1], position[2], position[3], speedPart));
 	}

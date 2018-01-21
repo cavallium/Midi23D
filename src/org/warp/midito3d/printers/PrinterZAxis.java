@@ -37,7 +37,7 @@ public class PrinterZAxis implements Printer {
 
 	@Override
 	public void move(GCodeOutput po, double time, double... speed) throws IOException {
-
+		time/=60d;
 		double motorDelta = ((speed[0] * time) *motorDirection);
 		motorPosition += motorDelta;
 		if (isBiggerThanMax(0, motorPosition)) {
@@ -46,13 +46,15 @@ public class PrinterZAxis implements Printer {
 		if (isSmallerThanMin(0, motorPosition)) {
 			motorDirection = 1d;
 		}
-		
+
+		po.writeLine(String.format(Locale.US, "G01 F%.10f", speed[0]));
 		po.writeLine(String.format(Locale.US, "G01 X0 Y0 Z%.10f E0 F%.10f", motorPosition, speed[0]));
 	}
 
 	@Override
 	public void goTo(GCodeOutput po, double speed, double... position) throws IOException {
 		motorPosition = position[0];
+		po.writeLine(String.format(Locale.US, "G00 F%.10f", speed));
 		po.writeLine(String.format(Locale.US, "G00 X0 Y0 Z%.10f E0 F%.10f", position[0], position[1], position[2], speed));
 	}
 

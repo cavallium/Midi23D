@@ -42,62 +42,68 @@ public final class Midi23D implements DoneListener {
 	@Override
 	public void done() {
 		try {
-			long firstTick;
+			Note[] lastNotes = null;
+			double lastTempo = 0;
 			long lastTick = -1;
+			double lastToneMultiplier = 0;
+			double lastDivision = 0;
 			printer.initialize(output);
 			
 			final double[][] debugFreqs = new double[printer.getMotorsCount()][(int) music.getLength()];
 			double songDuration = 0;
 			
-			while(music.hasNext()) {
-				music.findNext();
-				firstTick = lastTick;
-				lastTick = music.getCurrentTick();
-
-				double[] frequency = new double[motorsCount];
-				double[] speed = new double[motorsCount];
-				boolean didSomething = false;
-				String frequenciesString = "";
-				
-				for (int channel = 0; channel < motorsCount; channel++) {
-					Note note = music.getCurrentNote(channel);
+			do {
+				long currentTick = music.getCurrentTick();
+				if (lastTick != -1) {
+					double deltaTime = (((currentTick-lastTick) * lastDivision) * lastTempo);
 					
-					if (note != null) {
-						frequency[channel] = note.getFrequency() * music.getToneMultiplier();
-						for (int ii = (int) firstTick + 1; ii <= lastTick; ii++) {
-							debugFreqs[channel][ii] = frequency[channel];
-						}
-						speed[channel] = frequency[channel] * note.velocity / (double)printer.getMotor(channel).getPPI();
+					double[] frequency = new double[motorsCount];
+					double[] speed = new double[motorsCount];
+					boolean didSomething = false;
+					String frequenciesString = "";
+					
+					for (int channel = 0; channel < motorsCount; channel++) {
+						Note note = lastNotes[channel];
 						
-						if (didSomething == false) {
-							didSomething = speed[channel] > 0d;
+						if (note != null) {
+							frequency[channel] = note.getFrequency() * lastToneMultiplier;
+							for (int ii = (int) lastTick + 1; ii <= currentTick; ii++) {
+								debugFreqs[channel][ii] = frequency[channel];
+							}
+							speed[channel] = frequency[channel] * 60d / (double)printer.getMotor(channel).getStepsPerMillimeter(); // mm/min
+							
+							if (didSomething == false) {
+								didSomething = speed[channel] > 0d;
+							}
 						}
+						
+						frequenciesString += String.format(Locale.US, ", %.3fHz", frequency[channel]);
 					}
 					
-					frequenciesString += String.format(Locale.US, ", %.3fHz", frequency[channel]);
-				}
-				
-				double deltaTime = (((lastTick-firstTick)/music.getDivision()) * music.getCurrentTempo());
-				songDuration+=deltaTime;
-				System.out.println(String.format("Chord: [%s] for %d deltas (%.2f seconds)", frequenciesString.substring(2), lastTick-firstTick, deltaTime));
-				
-				
-				if (didSomething) {
-					printer.move(output, deltaTime/60d, speed);
-				} else {
-					for (int m = 0; m < motorsCount; m++) {
-						speed[m] = 13 / (double)printer.getMotor(m).getPPI();
-					}
-					printer.move(output, deltaTime/60d, speed);
-					/*
-					if (music instanceof Mp3Music) {
-						printer.wait(output, deltaTime);
+					songDuration+=deltaTime;
+					System.out.println(String.format("Chord: [%s] for %d deltas (%.2f seconds)", frequenciesString.substring(2), currentTick-lastTick, deltaTime));
+					
+					
+					if (didSomething) {
+						printer.move(output, deltaTime, speed);
 					} else {
-						printer.wait(output, deltaTime);
-					}*/
-					
+						for (int i = 0; i < motorsCount; i++) {
+							speed[i] = 3d * 60d / (double)printer.getMotor(i).getStepsPerMillimeter();
+						}
+						printer.move(output, deltaTime, speed);
+//						printer.wait(output, deltaTime*1000);
+					}	
 				}
-			}
+				lastTick = currentTick;
+				lastNotes = new Note[motorsCount];
+				for (int i = 0; i < motorsCount; i++) {
+					lastNotes[i] = music.getCurrentNote(i);
+				}
+				lastTempo = music.getCurrentTempo();
+				lastToneMultiplier = music.getToneMultiplier();
+				lastDivision = music.getDivision();
+				music.findNext();
+			} while(music.hasNext());
 			
 			System.out.println("Song duration: "+songDuration + " seconds.");
 			

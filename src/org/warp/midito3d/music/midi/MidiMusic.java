@@ -72,6 +72,7 @@ class MidiMusic implements Music, ParserListener, ParserProgressListener {
 		this.tempoSequence = new DoubleSequence();
 		this.ignoredTracks.add(false);
 		currentTime = 0L;
+		currentTick = -1;
 		this.doneEvent = doneEvent;
 		parser.parse(sequence);
 	}
@@ -88,7 +89,7 @@ class MidiMusic implements Music, ParserListener, ParserProgressListener {
 		if (currentNotes == null) {
 			initialSituation = new MidiNote[channelsCount];
 			for (int i = 0; i < channelsCount; i++) {
-				initialSituation[0] = new MidiNote(0, 96d, initialTick);
+				initialSituation[i] = new MidiNote(0, 60d, initialTick);
 			}
 		}
 		long currentTick = this.currentTick;
@@ -104,14 +105,11 @@ class MidiMusic implements Music, ParserListener, ParserProgressListener {
 				}
 				if (initialTempo != currentTempo) changed = true;
 				for (int i = 0; i < channelsCount; i++) {
-					if (i < frequencySequences.size()) {
-						double freq = frequencySequences.get(i).getNextTick();
-						if (currentSituation[i] == null || currentSituation[i].getFrequency() != freq) {
-							currentSituation[i] = new MidiNote(freq, 96d, currentTick);
-							changed = true;
-						}
-					} else {
-						currentSituation[i] = null;
+					int ch = i % frequencySequences.size();
+					double freq = frequencySequences.get(ch).getNextTick();
+					if (currentSituation[i] == null || currentSituation[i].getFrequency() != freq) {
+						currentSituation[i] = new MidiNote(freq, 60d, currentTick);
+						changed = true;
 					}
 				}
 			}
@@ -148,12 +146,12 @@ class MidiMusic implements Music, ParserListener, ParserProgressListener {
 
 	@Override
 	public double getDivision() {
-		return sequence.getResolution()*18d;
+		return (sequence.getMicrosecondLength() / 1000000d) / sequence.getTickLength();
 	}
 
 	@Override
 	public double getCurrentTempo() {
-		return currentTempo/DEFAULT_TEMPO;
+		return 1;//DEFAULT_TEMPO/currentTempo;
 	}
 
 	@Override
@@ -288,7 +286,11 @@ class MidiMusic implements Music, ParserListener, ParserProgressListener {
 	@Override
 	public void instrumentEvent(org.jfugue.Instrument instrument) {
 		ignoredTracks.set(currentChannel, ignoredTracks.get(currentChannel) || (instrument.getInstrument() >= 112 && instrument.getInstrument() < 120));
-		System.out.println("instrumentEvent: " + instrument.getMusicString());
+		try {
+			System.out.println("instrumentEvent: " + instrument.getMusicString());
+		} catch (Exception ex) {
+			
+		}
 	}
 
 	@Override
@@ -303,7 +305,7 @@ class MidiMusic implements Music, ParserListener, ParserProgressListener {
 
 	@Override
 	public void timeEvent(Time time) {
-		System.out.println("timeEvent: " + time.getTime());
+//		System.out.println("timeEvent: " + time.getTime());
 		currentTime = time.getTime();
 	}
 
@@ -334,7 +336,7 @@ class MidiMusic implements Music, ParserListener, ParserProgressListener {
 
 	@Override
 	public void noteEvent(org.jfugue.Note note) {
-		System.out.println("noteEvent: " + note.getVerifyString());
+//		System.out.println("noteEvent: " + note.getVerifyString());
 		if (!ignoredTracks.get(currentChannel)) {
 //			int currentChannel = 0;
 //			while (frequencySequences.get(currentChannel).getFrequencyAt(currentTime) != 0.0d) {
@@ -393,6 +395,9 @@ class MidiMusic implements Music, ParserListener, ParserProgressListener {
 	    	for (int j = 0; j < frequencySequences.size(); j++) {
 	    		frequencySequences.get(j).resetCounter();
 	    	}
+
+	    	min -= 1;
+	    	max += 1;
 		    System.out.println("min: "+ min + ", max: " + max);
 		    
 		    final int[] colors = {0xFF0000, 0x00FF00, 0x0000FF, 0xFFFF00, 0x00FFFF, 0xFF00FF, 0xFFFFFF};
@@ -412,6 +417,16 @@ class MidiMusic implements Music, ParserListener, ParserProgressListener {
 	    	for (int j = 0; j < frequencySequences.size(); j++) {
 	    		frequencySequences.get(j).resetCounter();
 	    	}
+			if (currentNotes == null) {
+				currentNotes = new MidiNote[channelsCount];
+				for (int i = 0; i < channelsCount; i++) {
+					double freq = 0;
+					if (i < frequencySequences.size()) {
+						freq = frequencySequences.get(i).getComputedValueAt(0);
+					}
+					currentNotes[i] = new MidiNote(freq, 60d, 0);
+				}
+			}
 			if (doneEvent != null) doneEvent.done();
 		}
 //		System.out.println("progressReported: " + description + "," + partCompleted + "," + whole);
