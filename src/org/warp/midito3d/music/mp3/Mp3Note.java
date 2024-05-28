@@ -9,8 +9,8 @@ public class Mp3Note extends Note {
 	}
 
 	@Override
-	public double calculateFreq(double channelPitch) {
-		return note*channelPitch;
+	public double getFrequency() {
+		return note;
 	}
 
 }

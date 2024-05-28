@@ -13,6 +13,7 @@ import org.warp.midito3d.music.midi.MidiParser;
 import org.warp.midito3d.printers.GCodeOutput;
 import org.warp.midito3d.printers.Motor;
 import org.warp.midito3d.printers.Printer;
+import org.warp.midito3d.printers.Printer2Axes;
 import org.warp.midito3d.printers.Printer3Axes;
 import org.warp.midito3d.printers.Printer4Axes;
 import org.warp.midito3d.printers.PrinterZAxis;
@@ -37,7 +38,7 @@ public class CommandLineManager {
 			System.out.println("Choose the number of axes to use:\n1:\tOnly axis Z\n3:\tX,Y,Z axes\n4:\tX,Y,Z axes and extruder (WARNING: The extruder must be over 150 degrees to move)");
 			int printerAxes = scanner.nextInt();
 			
-			if ((printerAxes != 1) & (printerAxes != 3) & (printerAxes != 4)) {
+			if ((printerAxes != 1) & (printerAxes != 2) & (printerAxes != 3) & (printerAxes != 4)) {
 				System.err.println("Please pick one of the possible answers!");
 				System.exit(1);
 			}
@@ -59,13 +60,20 @@ public class CommandLineManager {
 				System.out.println("Select the speed of the "+axisName[m]+"-axis motor:\n(Usually it's 100 for the x,y,z,extruder axis and 800 for the z axis)");
 				motors[m] = new Motor(scanner.nextInt());
 			}
-			
-			if (printerAxes == 1) {
-				printer = new PrinterZAxis(motors[0], new PrinterArea(10, 10, 10, 50, 50, 40));
-			} else if (printerAxes == 3) {
-				printer = new Printer3Axes(motors[0], motors[1], motors[2], new PrinterArea(10, 10, 10, 50, 50, 40));
-			} else if (printerAxes == 4) {
-				printer = new Printer4Axes(motors[0], motors[1], motors[2], motors[3], new PrinterArea(10, 10, 10, 50, 50, 40));
+
+			switch (printerAxes) {
+				case 1:
+					printer = new PrinterZAxis(motors[0], new PrinterArea(10, 10, 10, 50, 50, 40));
+					break;
+				case 2:
+					printer = new Printer2Axes(motors[0], motors[1], new PrinterArea(new int[]{10, 10}, new int[]{50, 50}));
+					break;
+				case 3:
+					printer = new Printer3Axes(motors[0], motors[1], motors[2], new PrinterArea(10, 10, 10, 50, 50, 40));
+					break;
+				case 4:
+					printer = new Printer4Axes(motors[0], motors[1], motors[2], motors[3], new PrinterArea(new int[] {10, 10, 10, 0}, new int[] {50, 50, 40, 100000000}));
+					break;
 			}
 			
 			Midi23D Midi23D = new Midi23D(printer, music, output, motorTest);

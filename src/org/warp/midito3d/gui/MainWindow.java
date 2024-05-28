@@ -239,6 +239,7 @@ public class MainWindow extends JFrame {
 	}
 
 	public synchronized void execute() {
+		this.setLocationRelativeTo(null);
 		this.setVisible(true);
 	}
 	

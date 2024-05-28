@@ -1,16 +1,16 @@
 package org.warp.midito3d.gui.printers;
 
+import java.util.Arrays;
 import org.warp.midito3d.printers.Printer4Axes;
 
 public class Model4Axes implements PrinterModel {
-	private MotorSetting[] motors;
 
-	public Model4Axes() {
-		motors = new MotorSetting[]{new MotorSetting(),new MotorSetting(),new MotorSetting(800),new MotorSetting()};
-	}
-	
-	public Model4Axes(MotorSetting x, MotorSetting y, MotorSetting z, MotorSetting e) {
-		motors = new MotorSetting[]{x,y,z,e};
+	private final String modelName;
+	private final MotorSetting[] motors;
+
+	public Model4Axes(String modelName, MotorSetting[] defaultMotorSetting) {
+		this.modelName = modelName;
+		motors = Arrays.copyOf(defaultMotorSetting, 4);
 	}
 	
 	@Override
@@ -25,7 +25,7 @@ public class Model4Axes implements PrinterModel {
 	
 	@Override
 	public String getName() {
-		return "XYZ Axes + Extruder";
+		return "XYZ Axes + Extruder (" + modelName + ")";
 	}
 	
 	@Override

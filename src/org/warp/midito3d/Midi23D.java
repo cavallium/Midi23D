@@ -51,11 +51,14 @@ public final class Midi23D implements DoneListener {
 			
 			final double[][] debugFreqs = new double[printer.getMotorsCount()][(int) music.getLength()];
 			double songDuration = 0;
-			
+
+			// Wait 2 seconds at the start
+			printer.wait(output, 2);
+
 			do {
 				long currentTick = music.getCurrentTick();
 				if (lastTick != -1) {
-					double deltaTime = (((currentTick-lastTick) * lastDivision) * lastTempo);
+					double deltaTime = (((currentTick-lastTick) * lastDivision) * lastTempo) / music.getSpeedMultiplier();
 					
 					double[] frequency = new double[motorsCount];
 					double[] speed = new double[motorsCount];
@@ -87,11 +90,7 @@ public final class Midi23D implements DoneListener {
 					if (didSomething) {
 						printer.move(output, deltaTime, speed);
 					} else {
-						for (int i = 0; i < motorsCount; i++) {
-							speed[i] = 3d * 60d / (double)printer.getMotor(i).getStepsPerMillimeter();
-						}
-						printer.move(output, deltaTime, speed);
-//						printer.wait(output, deltaTime*1000);
+						printer.wait(output, deltaTime);
 					}	
 				}
 				lastTick = currentTick;
@@ -104,8 +103,11 @@ public final class Midi23D implements DoneListener {
 				lastDivision = music.getDivision();
 				music.findNext();
 			} while(music.hasNext());
+
+			// Wait 5 seconds at the end
+			printer.wait(output, 5);
 			
-			System.out.println("Song duration: "+songDuration + " seconds.");
+			System.out.println("Song duration: "+ songDuration + " seconds.");
 			
 			printer.stop(output);
 			

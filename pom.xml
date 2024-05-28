@@ -14,7 +14,7 @@
 	<repositories>
 	    <repository>
 	      <id>clojars</id>
-	      <url>http://clojars.org/repo/</url>
+	      <url>https://clojars.org/repo/</url>
 	    </repository>
 	 </repositories>
   <dependencies>
@@ -35,6 +35,11 @@
 	    <artifactId>jsyn</artifactId>
 	    <version>20170328</version>
 	</dependency>
+		<dependency>
+			<groupId>com.formdev</groupId>
+			<artifactId>flatlaf</artifactId>
+			<version>3.4.1</version>
+		</dependency>
   </dependencies>
   <build>
     <sourceDirectory>src</sourceDirectory>

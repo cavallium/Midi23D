@@ -1,16 +1,16 @@
 package org.warp.midito3d.gui.printers;
 
+import java.util.Arrays;
 import org.warp.midito3d.printers.PrinterZAxis;
 
 public class ModelZAxis implements PrinterModel {
-	private MotorSetting motor;
-	
-	public ModelZAxis(MotorSetting z) {
-		motor = z;
-	}
-	
-	public ModelZAxis() {
-		motor = new MotorSetting(800);
+
+	private final String modelName;
+	private final MotorSetting[] motors;
+
+	public ModelZAxis(String modelName, MotorSetting[] defaultMotorSetting) {
+		this.modelName = modelName;
+		motors = Arrays.copyOfRange(defaultMotorSetting, 2, 3);
 	}
 	
 	@Override
@@ -21,7 +21,7 @@ public class ModelZAxis implements PrinterModel {
 	@Override
 	public MotorSetting getMotor(int number) {
 		if (number == 0) {
-			return motor;
+			return motors[0];
 		} else {
 			throw new java.lang.IndexOutOfBoundsException();
 		}
@@ -29,7 +29,7 @@ public class ModelZAxis implements PrinterModel {
 
 	@Override
 	public String getName() {
-		return "Z Axis";
+		return "Z Axis (" + modelName + ")";
 	}
 	
 	@Override
@@ -49,6 +49,6 @@ public class ModelZAxis implements PrinterModel {
 
 	@Override
 	public PrinterZAxis createPrinterObject(PrinterModelArea printerModelArea) {
-		return new PrinterZAxis(motor.createMotorObject(), printerModelArea.createAreaObject());
+		return new PrinterZAxis(motors[0].createMotorObject(), printerModelArea.createAreaObject());
 	}
 }

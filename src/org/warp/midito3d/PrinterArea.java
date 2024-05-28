@@ -1,19 +1,33 @@
 package org.warp.midito3d;
 
 public class PrinterArea {
-	public final int minX;
-	public final int minY;
-	public final int minZ;
-	public final int maxX;
-	public final int maxY;
-	public final int maxZ;
+	/**
+	 * x, y, z, ...
+	 */
+	public final int[] min;
+	/**
+	 * x, y, z, ...
+	 */
+	public final int[] max;
 
 	public PrinterArea(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
-		this.minX = minX;
-		this.minY = minY;
-		this.minZ = minZ;
-		this.maxX = maxX;
-		this.maxY = maxY;
-		this.maxZ = maxZ;
+		this(3);
+		this.min[0] = minX;
+		this.min[1] = minY;
+		this.min[2] = minZ;
+		this.max[0] = maxX;
+		this.max[1] = maxY;
+		this.max[2] = maxZ;
+	}
+
+	public PrinterArea(int nd) {
+		this.min = new int[nd];
+		this.max = new int[nd];
+	}
+
+	public PrinterArea(int[] min, int[] max) {
+		assert min.length == max.length;
+		this.min = min;
+		this.max = max;
 	}
 }

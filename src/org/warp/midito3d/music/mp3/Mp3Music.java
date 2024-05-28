@@ -8,6 +8,7 @@ import java.util.List;
 
 import javax.sound.sampled.AudioInputStream;
 
+import org.warp.midito3d.music.DoneListener;
 import org.warp.midito3d.music.Music;
 import org.warp.midito3d.music.Note;
 
@@ -47,7 +48,7 @@ public class Mp3Music implements Music {
 	}
 
 	@Override
-	public void reanalyze() {
+	public void reanalyze(DoneListener l) {
 		try {
 
 //			if (mus.available()) {

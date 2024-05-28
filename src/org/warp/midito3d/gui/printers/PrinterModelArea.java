@@ -16,6 +16,6 @@ public class PrinterModelArea {
 	}
 
 	public PrinterArea createAreaObject() {
-		return new PrinterArea(margins[0], margins[1], margins[2], size[0]-margins[0], size[1]-margins[1], size[2]-margins[2]);
+		return new PrinterArea(new int[] {margins[0], margins[1], margins[2], margins[3]}, new int[] {size[0]-margins[0], size[1]-margins[1], size[2]-margins[2], size[3]-margins[3]});
 	}
 }

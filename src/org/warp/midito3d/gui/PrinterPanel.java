@@ -1,5 +1,8 @@
 package org.warp.midito3d.gui;
 
+import static org.warp.midito3d.gui.printers.StandardPrinters.ANET_A8_DEFAULT_AXIS_STEPS_PER_MM;
+import static org.warp.midito3d.gui.printers.StandardPrinters.LABISTS_ET4_DEFAULT_AXIS_STEPS_PER_MM;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -21,6 +24,7 @@ import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 
+import org.warp.midito3d.gui.printers.Model2Axes;
 import org.warp.midito3d.gui.printers.Model3Axes;
 import org.warp.midito3d.gui.printers.Model4Axes;
 import org.warp.midito3d.gui.printers.ModelZAxis;
@@ -37,9 +41,9 @@ public class PrinterPanel extends JPanel {
 	
 	public PrinterPanel() {
 		GridBagConstraints c = new GridBagConstraints();
-		
+
 		super.setLayout(new GridBagLayout());
-		
+
 		this.setBackground(Color.white);
 		this.setBorder(BorderFactory.createLineBorder(Color.black, 1));
 
@@ -69,7 +73,15 @@ public class PrinterPanel extends JPanel {
 		c.gridwidth = 5;
 		c.gridheight = 1;
 		this.add(modelText, c);
-		JComboBox<PrinterModel> modeList = new JComboBox<PrinterModel>(new PrinterModel[]{new ModelZAxis(), new Model3Axes(), new Model4Axes()});
+		JComboBox<PrinterModel> modeList = new JComboBox<>(new PrinterModel[]{
+				new ModelZAxis("A8", ANET_A8_DEFAULT_AXIS_STEPS_PER_MM),
+				new ModelZAxis("ET4", LABISTS_ET4_DEFAULT_AXIS_STEPS_PER_MM),
+				new Model2Axes("A8", ANET_A8_DEFAULT_AXIS_STEPS_PER_MM),
+				new Model2Axes("ET4", LABISTS_ET4_DEFAULT_AXIS_STEPS_PER_MM),
+				new Model3Axes("A8", ANET_A8_DEFAULT_AXIS_STEPS_PER_MM),
+				new Model3Axes("ET4", LABISTS_ET4_DEFAULT_AXIS_STEPS_PER_MM),
+				new Model4Axes("A8", ANET_A8_DEFAULT_AXIS_STEPS_PER_MM),
+				new Model4Axes("ET4", LABISTS_ET4_DEFAULT_AXIS_STEPS_PER_MM)});
 		modeList.setMinimumSize(new Dimension(130, 20));
 		modeList.setPreferredSize(new Dimension(130, 20));
 		c.insets = new Insets(0,5,2,3);
@@ -127,44 +139,44 @@ public class PrinterPanel extends JPanel {
 		c.gridwidth = 10;
 		c.gridheight = 1;
 		this.add(bottomPan, c);
-		MainWindow.INSTANCE.printerModelArea = new PrinterModelArea(new int[]{200,200,10}, new int[]{15,15,2});
+		MainWindow.INSTANCE.printerModelArea = new PrinterModelArea(new int[]{100,100,10,100}, new int[]{15,15,2,2});
 		final JSpinner zSize = new JSpinner(new SpinnerNumberModel(MainWindow.INSTANCE.printerModelArea.size[2], 1, 1000, 1));
-		zSize.setSize(45,20);
+		zSize.setSize(55,20);
 		zSize.setLocation(00,50);
 		zSize.addChangeListener((ChangeEvent e)->{
 				MainWindow.INSTANCE.printerModelArea.size[2] = (int) zSize.getValue();
 		});
 		bottomPan.add(zSize, c);
 		final JSpinner xSize = new JSpinner(new SpinnerNumberModel(MainWindow.INSTANCE.printerModelArea.size[0], 1, 1000, 1));
-		xSize.setSize(45,20);
+		xSize.setSize(55,20);
 		xSize.setLocation(10,80);
 		xSize.addChangeListener((ChangeEvent e)->{
 			MainWindow.INSTANCE.printerModelArea.size[0] = (int) xSize.getValue();
 		});
 		bottomPan.add(xSize, c);
 		final JSpinner ySize = new JSpinner(new SpinnerNumberModel(MainWindow.INSTANCE.printerModelArea.size[1], 1, 1000, 1));
-		ySize.setSize(45,20);
+		ySize.setSize(55,20);
 		ySize.setLocation(95,80);
 		ySize.addChangeListener((ChangeEvent e)->{
 				MainWindow.INSTANCE.printerModelArea.size[1] = (int) ySize.getValue();
 		});
 		bottomPan.add(ySize, c);
 		final JSpinner yMargin = new JSpinner(new SpinnerNumberModel(MainWindow.INSTANCE.printerModelArea.margins[1], 1, 1000, 1));
-		yMargin.setSize(45,20);
+		yMargin.setSize(55,20);
 		yMargin.setLocation(145,15);
 		yMargin.addChangeListener((ChangeEvent e)->{
 				MainWindow.INSTANCE.printerModelArea.margins[1] = (int) yMargin.getValue();
 		});
 		bottomPan.add(yMargin, c);
 		final JSpinner zMargin = new JSpinner(new SpinnerNumberModel(MainWindow.INSTANCE.printerModelArea.margins[2], 1, 1000, 1));
-		zMargin.setSize(45,20);
+		zMargin.setSize(55,20);
 		zMargin.setLocation(120,55);
 		zMargin.addChangeListener((ChangeEvent e)->{
 				MainWindow.INSTANCE.printerModelArea.margins[2] = (int) zMargin.getValue();
 		});
 		bottomPan.add(zMargin, c);
 		final JSpinner xMargin = new JSpinner(new SpinnerNumberModel(MainWindow.INSTANCE.printerModelArea.margins[0], 1, 1000, 1));
-		xMargin.setSize(45,20);
+		xMargin.setSize(55,20);
 		xMargin.setLocation(235,15);
 		xMargin.addChangeListener((ChangeEvent e)->{
 				MainWindow.INSTANCE.printerModelArea.margins[0] = (int) xMargin.getValue();
@@ -188,7 +200,7 @@ public class PrinterPanel extends JPanel {
 				}
 			}   
 		});
-		modeList.setSelectedIndex(1);
+		modeList.setSelectedIndex(2);
 	}
 	
 	public void setPrinterModel(PrinterModel model) {

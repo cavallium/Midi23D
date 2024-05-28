@@ -83,7 +83,7 @@ public class InputSongPanel extends SongPanel {
 		c.weightx = 0;
 		c.weighty = 0;
 		add(label, c);
-		final JSpinner speedAdj = new JSpinner(new SpinnerNumberModel(1, 0.125, 4, 0.125));
+		final JSpinner speedAdj = new JSpinner(new SpinnerNumberModel(1, 0.0001, 10000, 0.1));
 		speedAdj.setMinimumSize(new Dimension(75, 20));
 		speedAdj.setPreferredSize(new Dimension(75, 20));
 		speedAdj.setMaximumSize(new Dimension(75, 20));
