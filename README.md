@@ -16,7 +16,7 @@ You must use this formula: https://cavallium.it/assets/midi23d/delta.svg
 In this way you can control simultaneously one note for each motor.
 
 # Usage
-First of all, download ***Midi23D*** ([***Cross-platform***](https://cavallium.it/assets/midi23d/Midi23D.jar)) ([***Windows***](https://cavallium.it/assets/midi23d/Midi23D.exe))
+First of all, download ***Midi23D*** ([***Cross-platform .jar file***](https://cavallium.it/assets/midi23d/Midi23D.jar))
 
 Run the program by executing this code into your terminal:
 **java -jar Midi23D.jar <input-file.mid> <output-file.gcode> <speed-multiplier> <tone-multiplier> <motor-test>**
